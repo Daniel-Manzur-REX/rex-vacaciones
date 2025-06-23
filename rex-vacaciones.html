@@ -91,6 +91,13 @@
       display: block;
     }
   </style>
+  <script>
+  // Verificación de sesión activa
+  const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+  if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
+    window.location.href = 'login.html';
+  }
+</script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
