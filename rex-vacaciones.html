@@ -115,7 +115,24 @@
     </div>
   </header>
   <main>
-    <section>
+    <section id="panel-usuarios">
+      <h2>Usuarios</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Usuario</th>
+            <th>Días</th>
+            <th>Usados</th>
+            <th>Renovación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-usuarios"></tbody>
+      </table>
+    </section>
+    <section id="panel-solicitudes">
       <h2>Solicitudes de vacaciones</h2>
       <table>
         <thead>
@@ -141,12 +158,55 @@
         window.location.href = 'login.html';
       } else {
         cargarSolicitudes();
+        cargarUsuarios();
       }
     });
 
     function cerrarSesion() {
       localStorage.removeItem('usuarioActivo');
       window.location.href = 'login.html';
+    }
+
+    function cargarUsuarios() {
+      db.ref('usuarios').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const tbody = document.getElementById('tabla-usuarios');
+        tbody.innerHTML = '';
+        if (!data) return;
+        Object.entries(data).forEach(([key, usuario]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${usuario.nombre}</td>
+            <td>${usuario.correo}</td>
+            <td>${usuario.usuario}</td>
+            <td>${usuario.dias}</td>
+            <td>${usuario.usados}</td>
+            <td>${usuario.renovacion}</td>
+            <td class="acciones">
+              <button onclick="togglePanel(event, '${key}')">Editar</button>
+              <div class="panel">
+                <label>Días</label>
+                <input type="number" value="${usuario.dias}" onchange="actualizarUsuario('${key}', 'dias', this.value)">
+                <label>Usados</label>
+                <input type="number" value="${usuario.usados}" onchange="actualizarUsuario('${key}', 'usados', this.value)">
+                <label>Renovación</label>
+                <input type="date" value="${usuario.renovacion}" onchange="actualizarUsuario('${key}', 'renovacion', this.value)">
+                <button onclick="eliminarUsuario('${key}')">Eliminar</button>
+              </div>
+            </td>`;
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    function actualizarUsuario(key, campo, valor) {
+      db.ref('usuarios/' + key + '/' + campo).set(valor);
+    }
+
+    function eliminarUsuario(key) {
+      if (confirm('¿Eliminar este usuario?')) {
+        db.ref('usuarios/' + key).remove().then(() => cargarUsuarios());
+      }
     }
 
     function cargarSolicitudes() {
@@ -170,27 +230,16 @@
           <td>${solicitud.estado}</td>
           <td>${solicitud.justificacion || ''}</td>
           <td class="acciones">
-            <button onclick="togglePanel(event, '${key}')">Acciones</button>
-            <div class="panel">
+            <button onclick="togglePanel(event, 'sol-${key}')">Acciones</button>
+            <div class="panel" id="sol-${key}">
               <button onclick="aprobar('${key}')">Aprobar</button>
               <button onclick="rechazar('${key}')">Rechazar</button>
-              <button onclick="eliminar('${key}')">Eliminar</button>
+              <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
             </div>
           </td>`;
         tbody.appendChild(row);
       });
     }
-
-    function togglePanel(e, key) {
-      document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
-      e.currentTarget.parentElement.classList.toggle('active');
-    }
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.acciones')) {
-        document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
-      }
-    });
 
     function aprobar(key) {
       db.ref('solicitudes/' + key).once('value').then(snapshot => {
@@ -215,10 +264,21 @@
       });
     }
 
-    function eliminar(key) {
+    function eliminarSolicitud(key) {
       if (!confirm('¿Eliminar esta solicitud?')) return;
       db.ref('solicitudes/' + key).remove().then(() => cargarSolicitudes());
     }
+
+    function togglePanel(e, key) {
+      document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+      e.currentTarget.parentElement.classList.toggle('active');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.acciones')) {
+        document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+      }
+    });
   </script>
 </body>
 </html>
