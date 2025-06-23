@@ -8,9 +8,8 @@
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      background-color: #f4f4f4;
+      background-color: #f9f9f9;
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -20,11 +19,9 @@
       padding: 10px 20px;
       border-radius: 5px;
     }
-
     h1, h2 {
       margin: 0;
     }
-
     .logout button {
       padding: 5px 10px;
       background-color: #ffffff;
@@ -32,41 +29,28 @@
       border-radius: 4px;
       cursor: pointer;
     }
-
     main {
       margin-top: 20px;
     }
-
     section {
       background-color: white;
       padding: 15px;
       border-radius: 5px;
       margin-bottom: 20px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       background-color: white;
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 8px 10px;
       text-align: left;
     }
-
     th {
       background-color: #e0e0e0;
     }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
     button {
       padding: 6px 12px;
       margin-top: 10px;
@@ -76,18 +60,15 @@
       border-radius: 3px;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #066489;
     }
-
     .panel {
       display: none;
       margin-top: 10px;
       flex-direction: column;
       gap: 8px;
     }
-
     .acciones.active .panel {
       display: flex;
       flex-direction: column;
@@ -113,22 +94,48 @@
 <main>
   <section>
     <h2>Crear nuevo usuario</h2>
-    <div class="form-grid">
-      <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
-      <div><label for="usuario">Nombre de usuario</label><input type="text" id="usuario"></div>
-      <div><label for="correo">Correo electrónico</label><input type="email" id="correo"></div>
-      <div><label for="contrasena">Contraseña</label><input type="password" id="contrasena"></div>
-      <div><label for="dias">Días totales de vacaciones</label><input type="number" id="dias"></div>
-      <div><label for="fecha-renovacion">Fecha de renovación anual</label><input type="date" id="fecha-renovacion"></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      <div>
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre">
+      </div>
+      <div>
+        <label for="usuario">Nombre de usuario</label>
+        <input type="text" id="usuario">
+      </div>
+      <div>
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo">
+      </div>
+      <div>
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena">
+      </div>
+      <div>
+        <label for="dias">Días totales de vacaciones</label>
+        <input type="number" id="dias">
+      </div>
+      <div>
+        <label for="fecha-renovacion">Fecha de renovación anual</label>
+        <input type="date" id="fecha-renovacion">
+      </div>
     </div>
-    <button onclick="crearUsuario()">Crear usuario</button>
+    <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
   </section>
 
   <section>
     <h2>Lista de usuarios</h2>
     <table>
       <thead>
-        <tr><th>Nombre</th><th>Correo</th><th>Usuario</th><th>Días totales</th><th>Usados</th><th>Renovación</th><th>Acciones</th></tr>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Usuario</th>
+          <th>Días totales</th>
+          <th>Usados</th>
+          <th>Renovación</th>
+          <th>Acciones</th>
+        </tr>
       </thead>
       <tbody id="tabla-usuarios"></tbody>
     </table>
@@ -138,7 +145,14 @@
     <h2>Solicitudes de vacaciones</h2>
     <table>
       <thead>
-        <tr><th>Usuario</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Justificación</th><th>Acciones</th></tr>
+        <tr>
+          <th>Usuario</th>
+          <th>Inicio</th>
+          <th>Fin</th>
+          <th>Estado</th>
+          <th>Justificación</th>
+          <th>Acciones</th>
+        </tr>
       </thead>
       <tbody id="tabla-solicitudes"></tbody>
     </table>
