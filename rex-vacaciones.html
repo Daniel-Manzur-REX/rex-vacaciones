@@ -4,102 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Administrador - REX Vacaciones</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #1a4d2e;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      position: relative;
-    }
-    .logout {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-    }
-    .logout button {
-      background-color: #b00020;
-      padding: 0.3rem 0.75rem;
-      border: none;
-      color: white;
-      cursor: pointer;
-      font-size: 0.9rem;
-      border-radius: 4px;
-    }
-    main {
-      max-width: 1000px;
-      margin: auto;
-      padding: 2rem;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    h2 {
-      color: #1a4d2e;
-      margin-top: 2rem;
-    }
-    label, input, button, select, textarea {
-      display: block;
-      width: 100%;
-      margin-top: 0.5rem;
-      margin-bottom: 1rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #1a4d2e;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-    }
-    th {
-      background-color: #e8f5e9;
-    }
-    .acciones {
-      position: relative;
-    }
-    .panel {
-      display: none;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 1rem;
-      z-index: 10;
-      width: 250px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .acciones.active .panel {
-      display: block;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-  const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
-  if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
-    window.location.href = 'login.html';
-  }
-});
+      const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+      if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
+        window.location.href = 'login.html';
+      }
+    });
   </script>
   <header>
     <h1>Panel de Administrador – REX Vacaciones</h1>
@@ -110,48 +24,22 @@
   <main>
     <section>
       <h2>Crear nuevo usuario</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        <div>
-          <label for="nombre">Nombre completo</label>
-          <input type="text" id="nombre">
-        </div>
-        <div>
-          <label for="usuario">Nombre de usuario</label>
-          <input type="text" id="usuario">
-        </div>
-        <div>
-          <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo">
-        </div>
-        <div>
-          <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena">
-        </div>
-        <div>
-          <label for="dias">Días totales de vacaciones</label>
-          <input type="number" id="dias">
-        </div>
-        <div>
-          <label for="fecha-renovacion">Fecha de renovación anual</label>
-          <input type="date" id="fecha-renovacion">
-        </div>
+      <div class="form-grid">
+        <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
+        <div><label for="usuario">Nombre de usuario</label><input type="text" id="usuario"></div>
+        <div><label for="correo">Correo electrónico</label><input type="email" id="correo"></div>
+        <div><label for="contrasena">Contraseña</label><input type="password" id="contrasena"></div>
+        <div><label for="dias">Días totales de vacaciones</label><input type="number" id="dias"></div>
+        <div><label for="fecha-renovacion">Fecha de renovación anual</label><input type="date" id="fecha-renovacion"></div>
       </div>
-      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
+      <button onclick="crearUsuario()">Crear usuario</button>
     </section>
 
     <section>
       <h2>Lista de usuarios</h2>
       <table>
         <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Usuario</th>
-            <th>Días totales</th>
-            <th>Usados</th>
-            <th>Renovación</th>
-            <th>Acciones</th>
-          </tr>
+          <tr><th>Nombre</th><th>Correo</th><th>Usuario</th><th>Días totales</th><th>Usados</th><th>Renovación</th><th>Acciones</th></tr>
         </thead>
         <tbody id="tabla-usuarios"></tbody>
       </table>
@@ -161,36 +49,26 @@
       <h2>Solicitudes de vacaciones</h2>
       <table>
         <thead>
-          <tr>
-            <th>Usuario</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Estado</th>
-            <th>Justificación</th>
-            <th>Acciones</th>
-          </tr>
+          <tr><th>Usuario</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Justificación</th><th>Acciones</th></tr>
         </thead>
         <tbody id="tabla-solicitudes"></tbody>
       </table>
     </section>
   </main>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
       authDomain: "rex-vacaciones.firebaseapp.com",
       projectId: "rex-vacaciones",
-      storageBucket: "rex-vacaciones.firebasestorage.app",
+      storageBucket: "rex-vacaciones.appspot.com",
       messagingSenderId: "919755172448",
       appId: "1:919755172448:web:3ed268536ae199f7a67105",
       measurementId: "G-Q8CX1R0RXY"
     };
-
     firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    const db = firebase.database();
 
     let usuarios = [];
     let solicitudes = [];
@@ -212,15 +90,21 @@ const db = firebase.database();
       window.location.href = 'login.html';
     }
 
-    
+    function guardarUsuarios() {
+      const usuariosObj = {};
+      usuarios.forEach(user => {
+        usuariosObj[user.usuario] = user;
+      });
+      db.ref('usuarios').set(usuariosObj);
+    }
 
     function guardarSolicitudes() {
-  const solicitudesObj = {};
-  solicitudes.forEach((s, i) => {
-    solicitudesObj[`solicitud_${i}`] = s;
-  });
-  db.ref('solicitudes').set(solicitudesObj);
-}
+      const solicitudesObj = {};
+      solicitudes.forEach((s, i) => {
+        solicitudesObj[`solicitud_${i}`] = s;
+      });
+      db.ref('solicitudes').set(solicitudesObj);
+    }
 
     function renderUsuarios() {
       const tbody = document.getElementById('tabla-usuarios');
@@ -238,16 +122,15 @@ const db = firebase.database();
             <button onclick="togglePanel(event, ${index})">Editar</button>
             <div class="panel">
               <label>Días totales</label>
-              <input type="number" min="0" value="${usuario.dias}" onchange="if (this.value >= 0) { usuarios[${index}].dias=parseInt(this.value);guardarUsuarios(); }">
+              <input type="number" min="0" value="${usuario.dias}" onchange="usuarios[${index}].dias=parseInt(this.value);guardarUsuarios();">
               <label>Días usados</label>
-              <input type="number" min="0" value="${usuario.usados}" onchange="if (this.value >= 0) { usuarios[${index}].usados=parseInt(this.value);guardarUsuarios(); }">
+              <input type="number" min="0" value="${usuario.usados}" onchange="usuarios[${index}].usados=parseInt(this.value);guardarUsuarios();">
               <label>Renovación</label>
-              <input type="date" value="${usuario.renovacion}" onchange="if (new Date(this.value) >= new Date()) { usuarios[${index}].renovacion=this.value;guardarUsuarios(); } else { alert('La fecha debe ser futura.'); this.value = usuarios[${index}].renovacion; }">
+              <input type="date" value="${usuario.renovacion}" onchange="usuarios[${index}].renovacion=this.value;guardarUsuarios();">
               <button onclick="guardarUsuarios();renderUsuarios();">Guardar</button>
-              <button onclick="eliminarUsuario(${index})" style="background:#b00020;margin-top:0.5rem;">Eliminar</button>
+              <button onclick="eliminarUsuario(${index})">Eliminar</button>
             </div>
-          </td>
-        `;
+          </td>`;
         tbody.appendChild(row);
       });
     }
@@ -270,7 +153,7 @@ const db = firebase.database();
             <div class="panel" id="solicitud-${index}">
               <button onclick="aprobar(${index})" ${disableButtons ? 'disabled' : ''}>Aprobar</button>
               <button onclick="rechazar(${index})" ${disableButtons ? 'disabled' : ''}>Rechazar</button>
-              <button onclick="eliminarSolicitud(${index})" style="background:#b00020;margin-top:0.5rem;">Eliminar</button>
+              <button onclick="eliminarSolicitud(${index})">Eliminar</button>
             </div>
           </td>`;
         tbody.appendChild(row);
@@ -303,18 +186,14 @@ const db = firebase.database();
       if (solicitud.estado !== 'Pendiente') return;
       solicitud.estado = 'Aprobado';
       solicitud.justificacion = '';
-
       const inicio = new Date(solicitud.inicio);
       const fin = new Date(solicitud.fin);
       const diasTomados = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
-
       const usuario = usuarios.find(u => u.usuario === solicitud.usuario);
       if (usuario) {
-        if (!usuario.usados) usuario.usados = 0;
         usuario.usados += diasTomados;
         guardarUsuarios();
       }
-
       guardarSolicitudes();
       renderSolicitudes();
       renderUsuarios();
@@ -324,9 +203,9 @@ const db = firebase.database();
       const solicitud = solicitudes[index];
       if (solicitud.estado !== 'Pendiente') return;
       const motivo = prompt('Ingrese la justificación del rechazo:');
-      if (motivo && motivo.trim() !== '') {
+      if (motivo) {
         solicitud.estado = 'Rechazado';
-        solicitud.justificacion = motivo.trim();
+        solicitud.justificacion = motivo;
         guardarSolicitudes();
         renderSolicitudes();
       }
@@ -337,40 +216,29 @@ const db = firebase.database();
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
-    window.crearUsuario = function() {
-  const nombre = document.getElementById('nombre').value.trim();
-  const usuario = document.getElementById('usuario').value.trim();
-  const correo = document.getElementById('correo').value.trim();
-  const contrasena = document.getElementById('contrasena').value;
-  const dias = parseInt(document.getElementById('dias').value);
-  const renovacion = document.getElementById('fecha-renovacion').value;
 
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const fechaRenovacion = new Date(renovacion);
-  fechaRenovacion.setHours(0, 0, 0, 0);
-
-  if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || fechaRenovacion < hoy) {
-    alert('Por favor complete todos los campos correctamente. La fecha debe ser futura y los días no pueden ser negativos.');
-    return;
-  }
-
-  if (usuarios.some(u => u.usuario === usuario)) {
-    alert('El nombre de usuario ya existe. Elija otro.');
-    return;
-  }
-
-  const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-  usuarios.push(nuevoUsuario);
-
-  const usuariosObj = {};
-  usuarios.forEach(user => {
-    usuariosObj[user.usuario] = user;
-  });
-
-  db.ref('usuarios').set(usuariosObj)
-    .then(() => {
-      console.log('Usuarios guardados correctamente');
+    function crearUsuario() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const usuario = document.getElementById('usuario').value.trim();
+      const correo = document.getElementById('correo').value.trim();
+      const contrasena = document.getElementById('contrasena').value;
+      const dias = parseInt(document.getElementById('dias').value);
+      const renovacion = document.getElementById('fecha-renovacion').value;
+      const hoy = new Date();
+      hoy.setHours(0,0,0,0);
+      const fechaRenovacion = new Date(renovacion);
+      fechaRenovacion.setHours(0,0,0,0);
+      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || fechaRenovacion < hoy) {
+        alert('Por favor complete todos los campos correctamente.');
+        return;
+      }
+      if (usuarios.some(u => u.usuario === usuario)) {
+        alert('El nombre de usuario ya existe.');
+        return;
+      }
+      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+      usuarios.push(nuevoUsuario);
+      guardarUsuarios();
       renderUsuarios();
       document.getElementById('nombre').value = '';
       document.getElementById('usuario').value = '';
@@ -378,12 +246,7 @@ const db = firebase.database();
       document.getElementById('contrasena').value = '';
       document.getElementById('dias').value = '';
       document.getElementById('fecha-renovacion').value = '';
-    })
-    .catch((error) => {
-      console.error('Error al guardar usuarios:', error);
-      alert('Hubo un problema al guardar los usuarios en Firebase. Revisa la consola para más detalles.');
-    });
-};
-</script>
+    }
+  </script>
 </body>
 </html>
