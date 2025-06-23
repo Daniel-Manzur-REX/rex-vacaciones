@@ -4,249 +4,334 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Administrador - REX Vacaciones</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #0A4E68;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+
+    h1, h2 {
+      margin: 0;
+    }
+
+    .logout button {
+      padding: 5px 10px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    main {
+      margin-top: 20px;
+    }
+
+    section {
+      background-color: white;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #e0e0e0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 6px 12px;
+      margin-top: 10px;
+      background-color: #0A4E68;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #066489;
+    }
+
+    .panel {
+      display: none;
+      margin-top: 10px;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .acciones.active .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+  </style>
 </head>
 <body>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
-      if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
-        window.location.href = 'login.html';
-      }
-    });
-  </script>
-  <header>
-    <h1>Panel de Administrador – REX Vacaciones</h1>
-    <div class="logout">
-      <button onclick="cerrarSesion()">Salir</button>
-    </div>
-  </header>
-  <main>
-    <section>
-      <h2>Crear nuevo usuario</h2>
-      <div class="form-grid">
-        <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
-        <div><label for="usuario">Nombre de usuario</label><input type="text" id="usuario"></div>
-        <div><label for="correo">Correo electrónico</label><input type="email" id="correo"></div>
-        <div><label for="contrasena">Contraseña</label><input type="password" id="contrasena"></div>
-        <div><label for="dias">Días totales de vacaciones</label><input type="number" id="dias"></div>
-        <div><label for="fecha-renovacion">Fecha de renovación anual</label><input type="date" id="fecha-renovacion"></div>
-      </div>
-      <button onclick="crearUsuario()">Crear usuario</button>
-    </section>
-
-    <section>
-      <h2>Lista de usuarios</h2>
-      <table>
-        <thead>
-          <tr><th>Nombre</th><th>Correo</th><th>Usuario</th><th>Días totales</th><th>Usados</th><th>Renovación</th><th>Acciones</th></tr>
-        </thead>
-        <tbody id="tabla-usuarios"></tbody>
-      </table>
-    </section>
-
-    <section>
-      <h2>Solicitudes de vacaciones</h2>
-      <table>
-        <thead>
-          <tr><th>Usuario</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Justificación</th><th>Acciones</th></tr>
-        </thead>
-        <tbody id="tabla-solicitudes"></tbody>
-      </table>
-    </section>
-  </main>
-
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
-      authDomain: "rex-vacaciones.firebaseapp.com",
-      projectId: "rex-vacaciones",
-      storageBucket: "rex-vacaciones.appspot.com",
-      messagingSenderId: "919755172448",
-      appId: "1:919755172448:web:3ed268536ae199f7a67105",
-      measurementId: "G-Q8CX1R0RXY"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let usuarios = [];
-    let solicitudes = [];
-
-    db.ref('usuarios').once('value').then(snapshot => {
-      const data = snapshot.val();
-      usuarios = data ? Object.values(data) : [];
-      renderUsuarios();
-    });
-
-    db.ref('solicitudes').once('value').then(snapshot => {
-      const data = snapshot.val();
-      solicitudes = data ? Object.values(data) : [];
-      renderSolicitudes();
-    });
-
-    function cerrarSesion() {
-      localStorage.removeItem('usuarioActivo');
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+    if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
       window.location.href = 'login.html';
     }
+  });
+</script>
+<header>
+  <h1>Panel de Administrador – REX Vacaciones</h1>
+  <div class="logout">
+    <button onclick="cerrarSesion()">Salir</button>
+  </div>
+</header>
+<main>
+  <section>
+    <h2>Crear nuevo usuario</h2>
+    <div class="form-grid">
+      <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
+      <div><label for="usuario">Nombre de usuario</label><input type="text" id="usuario"></div>
+      <div><label for="correo">Correo electrónico</label><input type="email" id="correo"></div>
+      <div><label for="contrasena">Contraseña</label><input type="password" id="contrasena"></div>
+      <div><label for="dias">Días totales de vacaciones</label><input type="number" id="dias"></div>
+      <div><label for="fecha-renovacion">Fecha de renovación anual</label><input type="date" id="fecha-renovacion"></div>
+    </div>
+    <button onclick="crearUsuario()">Crear usuario</button>
+  </section>
 
-    function guardarUsuarios() {
-      const usuariosObj = {};
-      usuarios.forEach(user => {
-        usuariosObj[user.usuario] = user;
-      });
-      db.ref('usuarios').set(usuariosObj);
-    }
+  <section>
+    <h2>Lista de usuarios</h2>
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Correo</th><th>Usuario</th><th>Días totales</th><th>Usados</th><th>Renovación</th><th>Acciones</th></tr>
+      </thead>
+      <tbody id="tabla-usuarios"></tbody>
+    </table>
+  </section>
 
-    function guardarSolicitudes() {
-      const solicitudesObj = {};
-      solicitudes.forEach((s, i) => {
-        solicitudesObj[`solicitud_${i}`] = s;
-      });
-      db.ref('solicitudes').set(solicitudesObj);
-    }
+  <section>
+    <h2>Solicitudes de vacaciones</h2>
+    <table>
+      <thead>
+        <tr><th>Usuario</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Justificación</th><th>Acciones</th></tr>
+      </thead>
+      <tbody id="tabla-solicitudes"></tbody>
+    </table>
+  </section>
+</main>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
+    authDomain: "rex-vacaciones.firebaseapp.com",
+    projectId: "rex-vacaciones",
+    storageBucket: "rex-vacaciones.appspot.com",
+    messagingSenderId: "919755172448",
+    appId: "1:919755172448:web:3ed268536ae199f7a67105",
+    measurementId: "G-Q8CX1R0RXY"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  let usuarios = [];
+  let solicitudes = [];
 
-    function renderUsuarios() {
-      const tbody = document.getElementById('tabla-usuarios');
-      tbody.innerHTML = '';
-      usuarios.forEach((usuario, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${usuario.nombre}</td>
-          <td>${usuario.correo}</td>
-          <td>${usuario.usuario}</td>
-          <td>${usuario.dias}</td>
-          <td>${usuario.usados}</td>
-          <td>${usuario.renovacion}</td>
-          <td class="acciones">
-            <button onclick="togglePanel(event, ${index})">Editar</button>
-            <div class="panel">
-              <label>Días totales</label>
-              <input type="number" min="0" value="${usuario.dias}" onchange="usuarios[${index}].dias=parseInt(this.value);guardarUsuarios();">
-              <label>Días usados</label>
-              <input type="number" min="0" value="${usuario.usados}" onchange="usuarios[${index}].usados=parseInt(this.value);guardarUsuarios();">
-              <label>Renovación</label>
-              <input type="date" value="${usuario.renovacion}" onchange="usuarios[${index}].renovacion=this.value;guardarUsuarios();">
-              <button onclick="guardarUsuarios();renderUsuarios();">Guardar</button>
-              <button onclick="eliminarUsuario(${index})">Eliminar</button>
-            </div>
-          </td>`;
-        tbody.appendChild(row);
-      });
-    }
+  db.ref('usuarios').once('value').then(snapshot => {
+    const data = snapshot.val();
+    usuarios = data ? Object.values(data) : [];
+    renderUsuarios();
+  });
 
-    function renderSolicitudes() {
-      const tbody = document.getElementById('tabla-solicitudes');
-      tbody.innerHTML = '';
-      solicitudes.forEach((solicitud, index) => {
-        const justificacion = solicitud.justificacion || '';
-        const disableButtons = solicitud.estado !== 'Pendiente';
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${solicitud.usuario}</td>
-          <td>${solicitud.inicio}</td>
-          <td>${solicitud.fin}</td>
-          <td>${solicitud.estado}</td>
-          <td>${justificacion}</td>
-          <td class="acciones">
-            <button onclick="togglePanel(event, 'solicitud-${index}')">Acciones</button>
-            <div class="panel" id="solicitud-${index}">
-              <button onclick="aprobar(${index})" ${disableButtons ? 'disabled' : ''}>Aprobar</button>
-              <button onclick="rechazar(${index})" ${disableButtons ? 'disabled' : ''}>Rechazar</button>
-              <button onclick="eliminarSolicitud(${index})">Eliminar</button>
-            </div>
-          </td>`;
-        tbody.appendChild(row);
-      });
-    }
+  db.ref('solicitudes').once('value').then(snapshot => {
+    const data = snapshot.val();
+    solicitudes = data ? Object.values(data) : [];
+    renderSolicitudes();
+  });
 
-    function togglePanel(e, id) {
-      document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
-      e.currentTarget.parentElement.classList.toggle('active');
-    }
+  function cerrarSesion() {
+    localStorage.removeItem('usuarioActivo');
+    window.location.href = 'login.html';
+  }
 
-    function eliminarUsuario(index) {
-      if (confirm('¿Seguro que deseas eliminar este usuario?')) {
-        usuarios.splice(index, 1);
-        guardarUsuarios();
-        renderUsuarios();
-      }
-    }
-
-    function eliminarSolicitud(index) {
-      if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
-        solicitudes.splice(index, 1);
-        guardarSolicitudes();
-        renderSolicitudes();
-      }
-    }
-
-    function aprobar(index) {
-      const solicitud = solicitudes[index];
-      if (solicitud.estado !== 'Pendiente') return;
-      solicitud.estado = 'Aprobado';
-      solicitud.justificacion = '';
-      const inicio = new Date(solicitud.inicio);
-      const fin = new Date(solicitud.fin);
-      const diasTomados = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
-      const usuario = usuarios.find(u => u.usuario === solicitud.usuario);
-      if (usuario) {
-        usuario.usados += diasTomados;
-        guardarUsuarios();
-      }
-      guardarSolicitudes();
-      renderSolicitudes();
-      renderUsuarios();
-    }
-
-    function rechazar(index) {
-      const solicitud = solicitudes[index];
-      if (solicitud.estado !== 'Pendiente') return;
-      const motivo = prompt('Ingrese la justificación del rechazo:');
-      if (motivo) {
-        solicitud.estado = 'Rechazado';
-        solicitud.justificacion = motivo;
-        guardarSolicitudes();
-        renderSolicitudes();
-      }
-    }
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.acciones')) {
-        document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
-      }
+  function guardarUsuarios() {
+    const usuariosObj = {};
+    usuarios.forEach(user => {
+      usuariosObj[user.usuario] = user;
     });
+    db.ref('usuarios').set(usuariosObj);
+  }
 
-    function crearUsuario() {
-      const nombre = document.getElementById('nombre').value.trim();
-      const usuario = document.getElementById('usuario').value.trim();
-      const correo = document.getElementById('correo').value.trim();
-      const contrasena = document.getElementById('contrasena').value;
-      const dias = parseInt(document.getElementById('dias').value);
-      const renovacion = document.getElementById('fecha-renovacion').value;
-      const hoy = new Date();
-      hoy.setHours(0,0,0,0);
-      const fechaRenovacion = new Date(renovacion);
-      fechaRenovacion.setHours(0,0,0,0);
-      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || fechaRenovacion < hoy) {
-        alert('Por favor complete todos los campos correctamente.');
-        return;
-      }
-      if (usuarios.some(u => u.usuario === usuario)) {
-        alert('El nombre de usuario ya existe.');
-        return;
-      }
-      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-      usuarios.push(nuevoUsuario);
+  function guardarSolicitudes() {
+    const solicitudesObj = {};
+    solicitudes.forEach((s, i) => {
+      solicitudesObj[`solicitud_${i}`] = s;
+    });
+    db.ref('solicitudes').set(solicitudesObj);
+  }
+
+  function renderUsuarios() {
+    const tbody = document.getElementById('tabla-usuarios');
+    tbody.innerHTML = '';
+    usuarios.forEach((usuario, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${usuario.nombre}</td>
+        <td>${usuario.correo}</td>
+        <td>${usuario.usuario}</td>
+        <td>${usuario.dias}</td>
+        <td>${usuario.usados}</td>
+        <td>${usuario.renovacion}</td>
+        <td class="acciones">
+          <button onclick="togglePanel(event, ${index})">Editar</button>
+          <div class="panel">
+            <label>Días totales</label>
+            <input type="number" min="0" value="${usuario.dias}" onchange="usuarios[${index}].dias=parseInt(this.value);guardarUsuarios();">
+            <label>Días usados</label>
+            <input type="number" min="0" value="${usuario.usados}" onchange="usuarios[${index}].usados=parseInt(this.value);guardarUsuarios();">
+            <label>Renovación</label>
+            <input type="date" value="${usuario.renovacion}" onchange="usuarios[${index}].renovacion=this.value;guardarUsuarios();">
+            <button onclick="guardarUsuarios();renderUsuarios();">Guardar</button>
+            <button onclick="eliminarUsuario(${index})">Eliminar</button>
+          </div>
+        </td>`;
+      tbody.appendChild(row);
+    });
+  }
+
+  function renderSolicitudes() {
+    const tbody = document.getElementById('tabla-solicitudes');
+    tbody.innerHTML = '';
+    solicitudes.forEach((solicitud, index) => {
+      const justificacion = solicitud.justificacion || '';
+      const disableButtons = solicitud.estado !== 'Pendiente';
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${solicitud.usuario}</td>
+        <td>${solicitud.inicio}</td>
+        <td>${solicitud.fin}</td>
+        <td>${solicitud.estado}</td>
+        <td>${justificacion}</td>
+        <td class="acciones">
+          <button onclick="togglePanel(event, 'solicitud-${index}')">Acciones</button>
+          <div class="panel" id="solicitud-${index}">
+            <button onclick="aprobar(${index})" ${disableButtons ? 'disabled' : ''}>Aprobar</button>
+            <button onclick="rechazar(${index})" ${disableButtons ? 'disabled' : ''}>Rechazar</button>
+            <button onclick="eliminarSolicitud(${index})">Eliminar</button>
+          </div>
+        </td>`;
+      tbody.appendChild(row);
+    });
+  }
+
+  function togglePanel(e, id) {
+    document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+    e.currentTarget.parentElement.classList.toggle('active');
+  }
+
+  function eliminarUsuario(index) {
+    if (confirm('¿Seguro que deseas eliminar este usuario?')) {
+      usuarios.splice(index, 1);
       guardarUsuarios();
       renderUsuarios();
-      document.getElementById('nombre').value = '';
-      document.getElementById('usuario').value = '';
-      document.getElementById('correo').value = '';
-      document.getElementById('contrasena').value = '';
-      document.getElementById('dias').value = '';
-      document.getElementById('fecha-renovacion').value = '';
     }
-  </script>
-</body>
-</html>
+  }
+
+  function eliminarSolicitud(index) {
+    if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
+      solicitudes.splice(index, 1);
+      guardarSolicitudes();
+      renderSolicitudes();
+    }
+  }
+
+  function aprobar(index) {
+    const solicitud = solicitudes[index];
+    if (solicitud.estado !== 'Pendiente') return;
+    solicitud.estado = 'Aprobado';
+    solicitud.justificacion = '';
+    const inicio = new Date(solicitud.inicio);
+    const fin = new Date(solicitud.fin);
+    const diasTomados = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+    const usuario = usuarios.find(u => u.usuario === solicitud.usuario);
+    if (usuario) {
+      usuario.usados += diasTomados;
+      guardarUsuarios();
+    }
+    guardarSolicitudes();
+    renderSolicitudes();
+    renderUsuarios();
+  }
+
+  function rechazar(index) {
+    const solicitud = solicitudes[index];
+    if (solicitud.estado !== 'Pendiente') return;
+    const motivo = prompt('Ingrese la justificación del rechazo:');
+    if (motivo) {
+      solicitud.estado = 'Rechazado';
+      solicitud.justificacion = motivo;
+      guardarSolicitudes();
+      renderSolicitudes();
+    }
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.acciones')) {
+      document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+    }
+  });
+
+  function crearUsuario() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const usuario = document.getElementById('usuario').value.trim();
+    const correo = document.getElementById('correo').value.trim();
+    const contrasena = document.getElementById('contrasena').value;
+    const dias = parseInt(document.getElementById('dias').value);
+    const renovacion = document.getElementById('fecha-renovacion').value;
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+    const fechaRenovacion = new Date(renovacion);
+    fechaRenovacion.setHours(0,0,0,0);
+    if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || fechaRenovacion < hoy) {
+      alert('Por favor complete todos los campos correctamente.');
+      return;
+    }
+    if (usuarios.some(u => u.usuario === usuario)) {
+      alert('El nombre de usuario ya existe.');
+      return;
+    }
+    const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+    usuarios.push(nuevoUsuario);
+    guardarUsuarios();
+    renderUsuarios();
+    document.getElementById('nombre').value = '';
+    document.getElementById('usuario').value = '';
+    document.getElementById('correo').value = '';
+    document.getElementById('contrasena').value = '';
+    document.getElementById('dias').value = '';
+    document.getElementById('fecha-renovacion').value = '';
+  }
+</script>
