@@ -51,6 +51,22 @@
       margin-bottom: 1rem;
     }
   </style>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
+    authDomain: "rex-vacaciones.firebaseapp.com",
+    projectId: "rex-vacaciones",
+    storageBucket: "rex-vacaciones.firebasestorage.app",
+    messagingSenderId: "919755172448",
+    appId: "1:919755172448:web:3ed268536ae199f7a67105",
+    measurementId: "G-Q8CX1R0RXY"
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
 </head>
 <body>
   <div class="login-container">
@@ -73,17 +89,24 @@
 
       if (user === 'admin' && pass === '30051992') {
         alert('Bienvenido Administrador');
+        localStorage.setItem('usuarioActivo', JSON.stringify({ usuario: 'admin', contrasena: '30051992' }));
         window.location.href = 'rex-vacaciones.html';
         return;
       }
 
-      const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-      const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
+      db.ref('usuarios').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const usuarios = data ? Object.values(data) : [];
+        const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
 
-      if (encontrado) {
-        alert(`Bienvenido ${encontrado.nombre}`);
-        localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
-        window.location.href = 'usuario.html';
+        if (encontrado) {
+          alert(`Bienvenido ${encontrado.nombre}`);
+          localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
+          window.location.href = 'usuario.html';
+        } else {
+          error.textContent = 'Credenciales incorrectas';
+        }
+      });
       } else {
         error.textContent = 'Credenciales incorrectas';
       }
