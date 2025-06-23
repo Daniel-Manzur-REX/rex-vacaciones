@@ -74,22 +74,6 @@
     th {
       background-color: #e8f5e9;
     }
-    .acciones {
-      position: relative;
-    }
-    .panel {
-      display: none;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 1rem;
-      z-index: 10;
-      width: 250px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .acciones.active .panel {
-      display: block;
-    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -160,7 +144,77 @@
       });
     }
 
-    window.onload = cargarUsuarios;
+    function cargarSolicitudes() {
+      const tabla = document.getElementById('tabla-solicitudes');
+      tabla.innerHTML = '';
+      db.ref('solicitudes').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          Object.entries(data).forEach(([key, solicitud]) => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+              <td>${solicitud.usuario}</td>
+              <td>${solicitud.inicio}</td>
+              <td>${solicitud.fin}</td>
+              <td>${solicitud.estado}</td>
+              <td>${solicitud.justificacion || ''}</td>
+              <td>
+                <button onclick="aprobarSolicitud('${key}')">Aprobar</button>
+                <button onclick="rechazarSolicitud('${key}')">Rechazar</button>
+                <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
+              </td>
+            `;
+            tabla.appendChild(fila);
+          });
+        }
+      });
+    }
+
+    function aprobarSolicitud(key) {
+      db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
+        const solicitud = snapshot.val();
+        if (solicitud.estado !== 'Pendiente') return;
+
+        const inicio = new Date(solicitud.inicio);
+        const fin = new Date(solicitud.fin);
+        const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+        const usuarioKey = solicitud.usuario.replace(/[.#$\[\]]/g, '_');
+
+        db.ref(`usuarios/${usuarioKey}`).once('value').then(userSnap => {
+          const user = userSnap.val();
+          if (user) {
+            user.usados += dias;
+            db.ref(`usuarios/${usuarioKey}`).set(user);
+          }
+        });
+
+        solicitud.estado = 'Aprobado';
+        db.ref(`solicitudes/${key}`).set(solicitud).then(cargarSolicitudes);
+      });
+    }
+
+    function rechazarSolicitud(key) {
+      const motivo = prompt('Justificación del rechazo:');
+      if (!motivo) return;
+
+      db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
+        const solicitud = snapshot.val();
+        solicitud.estado = 'Rechazado';
+        solicitud.justificacion = motivo;
+        db.ref(`solicitudes/${key}`).set(solicitud).then(cargarSolicitudes);
+      });
+    }
+
+    function eliminarSolicitud(key) {
+      if (confirm('¿Eliminar esta solicitud?')) {
+        db.ref(`solicitudes/${key}`).remove().then(cargarSolicitudes);
+      }
+    }
+
+    window.onload = () => {
+      cargarUsuarios();
+      cargarSolicitudes();
+    };
   </script>
 </head>
 <body>
