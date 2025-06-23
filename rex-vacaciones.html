@@ -105,7 +105,6 @@
       measurementId: "G-Q8CX1R0RXY"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
   </script>
 </head>
 <body>
@@ -165,6 +164,8 @@
     </section>
   </main>
   <script>
+    const db = firebase.database();
+
     document.addEventListener('DOMContentLoaded', () => {
       const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
       if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
@@ -186,25 +187,26 @@
       const contrasena = document.getElementById('contrasena').value;
       const dias = parseInt(document.getElementById('dias').value);
       const renovacion = document.getElementById('fecha-renovacion').value;
+
       if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
         alert('Todos los campos son obligatorios');
         return;
       }
+
       const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-      firebase.database().ref('usuarios/' + usuario).set(nuevoUsuario)
-        .then(() => {
-          alert('Usuario creado correctamente');
-          cargarUsuarios();
-        });
+      const claveSegura = usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref('usuarios/' + claveSegura).set(nuevoUsuario).then(() => {
+        alert('Usuario creado correctamente');
+        cargarUsuarios();
+      });
     }
 
     function cargarUsuarios() {
-      firebase.database().ref('usuarios').once('value')
-        .then(snapshot => {
-          const data = snapshot.val();
-          const usuarios = data ? Object.values(data) : [];
-          renderUsuarios(usuarios);
-        });
+      db.ref('usuarios').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const usuarios = data ? Object.values(data) : [];
+        renderUsuarios(usuarios);
+      });
     }
 
     function renderUsuarios(usuarios) {
@@ -237,13 +239,14 @@
     }
 
     function actualizarUsuario(usuarioId, campo, valor) {
-      firebase.database().ref('usuarios/' + usuarioId + '/' + campo).set(valor);
+      const claveSegura = usuarioId.replace(/[.#$\[\]]/g, '_');
+      db.ref('usuarios/' + claveSegura + '/' + campo).set(valor);
     }
 
     function eliminarUsuario(usuarioId) {
       if (confirm('¿Seguro que deseas eliminar este usuario?')) {
-        firebase.database().ref('usuarios/' + usuarioId).remove()
-          .then(() => cargarUsuarios());
+        const claveSegura = usuarioId.replace(/[.#$\[\]]/g, '_');
+        db.ref('usuarios/' + claveSegura).remove().then(() => cargarUsuarios());
       }
     }
 
