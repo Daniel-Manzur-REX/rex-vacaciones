@@ -123,38 +123,9 @@ db.ref('usuarios').once('value').then(snapshot => {
   if (data && data[usuario.usuario]) {
     usuario = data[usuario.usuario];
     localStorage.setItem('usuarioActivo', JSON.stringify(usuario));
-    
-    
-    
-    
-  } else {
-    cerrarSesion();
-  }
-});
-    let solicitudes = [];
-db.ref('solicitudes').once('value').then(snapshot => {
-  const data = snapshot.val();
-  solicitudes = data ? Object.values(data) : [];
-  mostrarSolicitudes();
-});
 
-    if (!usuario) {
-      window.location.href = 'login.html';
-    }
-
-    document.getElementById('nombreUsuario').textContent = `Bienvenido, ${usuario.nombre}`;
-    const diasDisponibles = usuario.dias - usuario.usados;
-document.getElementById('diasRestantes').textContent = diasDisponibles;
-if (diasDisponibles <= 0) {
-  const btn = document.getElementById('btnSolicitud');
-  btn.disabled = true;
-  btn.style.backgroundColor = '#ccc';
-  btn.style.cursor = 'not-allowed';
-  mostrarError('No tienes días de vacaciones disponibles.');
-}
-    document.getElementById('diasUsados').textContent = usuario.usados;
-    document.getElementById('fechaRenovacion').textContent = usuario.renovacion;
-
+        const diasDisponibles = usuario.dias - usuario.usados;
+            
     let enviando = false;
 
     function solicitarVacaciones() {
