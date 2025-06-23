@@ -105,6 +105,37 @@
       measurementId: "G-Q8CX1R0RXY"
     };
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function cerrarSesion() {
+      localStorage.removeItem('usuarioActivo');
+      window.location.href = 'login.html';
+    }
+
+    function cargarUsuarios() {
+      const tabla = document.getElementById('tabla-usuarios');
+      tabla.innerHTML = '';
+      firebase.database().ref('usuarios').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          Object.values(data).forEach(usuario => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${usuario.nombre}</td>
+              <td>${usuario.correo}</td>
+              <td>${usuario.usuario}</td>
+              <td>${usuario.dias}</td>
+              <td>${usuario.usados}</td>
+              <td>${usuario.renovacion}</td>
+              <td><button>Editar</button></td>
+            `;
+            tabla.appendChild(row);
+          });
+        }
+      });
+    }
+
+    window.onload = cargarUsuarios;
   </script>
 </head>
 <body>
@@ -143,7 +174,7 @@
           <input type="date" id="fecha-renovacion">
         </div>
       </div>
-      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
+      <button style="margin-top: 1rem;">Crear usuario</button>
     </section>
 
     <section id="panel-usuarios">
