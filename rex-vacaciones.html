@@ -152,7 +152,8 @@
     function cargarSolicitudes() {
       db.ref('solicitudes').once('value').then(snapshot => {
         const data = snapshot.val();
-        const solicitudes = data ? Object.values(data) : [];
+        if (!data) return;
+        const solicitudes = Object.entries(data);
         renderSolicitudes(solicitudes);
       });
     }
@@ -160,7 +161,7 @@
     function renderSolicitudes(solicitudes) {
       const tbody = document.getElementById('tabla-solicitudes');
       tbody.innerHTML = '';
-      solicitudes.forEach((solicitud, index) => {
+      solicitudes.forEach(([key, solicitud]) => {
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${solicitud.usuario}</td>
@@ -169,18 +170,18 @@
           <td>${solicitud.estado}</td>
           <td>${solicitud.justificacion || ''}</td>
           <td class="acciones">
-            <button onclick="togglePanel(event, ${index})">Acciones</button>
+            <button onclick="togglePanel(event, '${key}')">Acciones</button>
             <div class="panel">
-              <button onclick="aprobar(${index})">Aprobar</button>
-              <button onclick="rechazar(${index})">Rechazar</button>
-              <button onclick="eliminar(${index})">Eliminar</button>
+              <button onclick="aprobar('${key}')">Aprobar</button>
+              <button onclick="rechazar('${key}')">Rechazar</button>
+              <button onclick="eliminar('${key}')">Eliminar</button>
             </div>
           </td>`;
         tbody.appendChild(row);
       });
     }
 
-    function togglePanel(e, id) {
+    function togglePanel(e, key) {
       document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       e.currentTarget.parentElement.classList.toggle('active');
     }
@@ -191,28 +192,22 @@
       }
     });
 
-    function aprobar(index) {
-      db.ref('solicitudes').once('value').then(snapshot => {
-        const data = snapshot.val();
-        const keys = Object.keys(data);
-        const key = keys[index];
-        const solicitud = data[key];
-        if (solicitud.estado === 'Pendiente') {
+    function aprobar(key) {
+      db.ref('solicitudes/' + key).once('value').then(snapshot => {
+        const solicitud = snapshot.val();
+        if (solicitud && solicitud.estado === 'Pendiente') {
           solicitud.estado = 'Aprobado';
           db.ref('solicitudes/' + key).set(solicitud).then(() => cargarSolicitudes());
         }
       });
     }
 
-    function rechazar(index) {
+    function rechazar(key) {
       const motivo = prompt('Justificación del rechazo:');
       if (!motivo) return;
-      db.ref('solicitudes').once('value').then(snapshot => {
-        const data = snapshot.val();
-        const keys = Object.keys(data);
-        const key = keys[index];
-        const solicitud = data[key];
-        if (solicitud.estado === 'Pendiente') {
+      db.ref('solicitudes/' + key).once('value').then(snapshot => {
+        const solicitud = snapshot.val();
+        if (solicitud && solicitud.estado === 'Pendiente') {
           solicitud.estado = 'Rechazado';
           solicitud.justificacion = motivo;
           db.ref('solicitudes/' + key).set(solicitud).then(() => cargarSolicitudes());
@@ -220,14 +215,9 @@
       });
     }
 
-    function eliminar(index) {
+    function eliminar(key) {
       if (!confirm('¿Eliminar esta solicitud?')) return;
-      db.ref('solicitudes').once('value').then(snapshot => {
-        const data = snapshot.val();
-        const keys = Object.keys(data);
-        const key = keys[index];
-        db.ref('solicitudes/' + key).remove().then(() => cargarSolicitudes());
-      });
+      db.ref('solicitudes/' + key).remove().then(() => cargarSolicitudes());
     }
   </script>
 </body>
