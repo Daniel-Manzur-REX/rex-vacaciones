@@ -115,7 +115,7 @@
     function cargarUsuarios() {
       const tabla = document.getElementById('tabla-usuarios');
       tabla.innerHTML = '';
-      firebase.database().ref('usuarios').once('value').then(snapshot => {
+      db.ref('usuarios').once('value').then(snapshot => {
         const data = snapshot.val();
         if (data) {
           Object.values(data).forEach(usuario => {
@@ -174,7 +174,7 @@
           <input type="date" id="fecha-renovacion">
         </div>
       </div>
-      <button style="margin-top: 1rem;">Crear usuario</button>
+      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
     </section>
 
     <section id="panel-usuarios">
