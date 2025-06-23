@@ -372,7 +372,53 @@
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
-    window.crearUsuario = crearUsuario;
+    window.crearUsuario = function() {
+  const nombre = document.getElementById('nombre').value.trim();
+  const usuario = document.getElementById('usuario').value.trim();
+  const correo = document.getElementById('correo').value.trim();
+  const contrasena = document.getElementById('contrasena').value;
+  const dias = parseInt(document.getElementById('dias').value);
+  const renovacion = document.getElementById('fecha-renovacion').value;
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const fechaRenovacion = new Date(renovacion);
+  fechaRenovacion.setHours(0, 0, 0, 0);
+
+  if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || fechaRenovacion < hoy) {
+    alert('Por favor complete todos los campos correctamente. La fecha debe ser futura y los días no pueden ser negativos.');
+    return;
+  }
+
+  if (usuarios.some(u => u.usuario === usuario)) {
+    alert('El nombre de usuario ya existe. Elija otro.');
+    return;
+  }
+
+  const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+  usuarios.push(nuevoUsuario);
+
+  const usuariosObj = {};
+  usuarios.forEach(user => {
+    usuariosObj[user.usuario] = user;
+  });
+
+  db.ref('usuarios').set(usuariosObj)
+    .then(() => {
+      console.log('Usuarios guardados correctamente');
+      renderUsuarios();
+      document.getElementById('nombre').value = '';
+      document.getElementById('usuario').value = '';
+      document.getElementById('correo').value = '';
+      document.getElementById('contrasena').value = '';
+      document.getElementById('dias').value = '';
+      document.getElementById('fecha-renovacion').value = '';
+    })
+    .catch((error) => {
+      console.error('Error al guardar usuarios:', error);
+      alert('Hubo un problema al guardar los usuarios en Firebase. Revisa la consola para más detalles.');
+    });
+};
 </script>
 </body>
 </html>
