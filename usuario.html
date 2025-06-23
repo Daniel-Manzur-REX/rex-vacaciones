@@ -14,7 +14,7 @@
     h1, h2 {
       color: #1a4d2e;
     }
-    .info, .solicitud, .historial {
+    .info, .solicitud, .historial, .cambio-pass {
       background: white;
       padding: 1.5rem;
       border-radius: 10px;
@@ -47,6 +47,9 @@
       color: red;
       margin-top: -0.5rem;
       margin-bottom: 1rem;
+    }
+    .success {
+      color: green;
     }
     table {
       width: 100%;
@@ -178,6 +181,53 @@
         finInput.value = '';
       });
     }
+
+    function cambiarContrasena() {
+      const actual = document.getElementById('actual').value.trim();
+      const nueva = document.getElementById('nueva').value.trim();
+      const confirmar = document.getElementById('confirmar').value.trim();
+      const mensaje = document.getElementById('mensaje-cambio');
+      mensaje.textContent = '';
+
+      if (!usuario || !usuario.usuario) {
+        mensaje.textContent = 'Sesión inválida.';
+        return;
+      }
+
+      if (actual !== usuario.contrasena) {
+        mensaje.textContent = 'La contraseña actual no es correcta.';
+        return;
+      }
+
+      if (nueva.length < 6) {
+        mensaje.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+        return;
+      }
+
+      if (nueva !== confirmar) {
+        mensaje.textContent = 'La nueva contraseña no coincide.';
+        return;
+      }
+
+      const key = usuario.usuario.replace(/[.#$\[\]]/g, '_');
+      firebase.database().ref('usuarios/' + key).update({ contrasena: nueva })
+        .then(() => {
+          usuario.contrasena = nueva;
+          localStorage.setItem('usuarioActivo', JSON.stringify(usuario));
+          mensaje.classList.remove('error');
+          mensaje.classList.add('success');
+          mensaje.textContent = 'Contraseña actualizada correctamente.';
+          document.getElementById('actual').value = '';
+          document.getElementById('nueva').value = '';
+          document.getElementById('confirmar').value = '';
+        })
+        .catch(error => {
+          mensaje.classList.remove('success');
+          mensaje.classList.add('error');
+          mensaje.textContent = 'Error al actualizar la contraseña.';
+          console.error(error);
+        });
+    }
   </script>
 </head>
 <body>
@@ -215,6 +265,18 @@
       </thead>
       <tbody id="tablaSolicitudes"></tbody>
     </table>
+  </div>
+
+  <div class="cambio-pass">
+    <h2>Cambiar contraseña</h2>
+    <label for="actual">Contraseña actual</label>
+    <input type="password" id="actual">
+    <label for="nueva">Nueva contraseña</label>
+    <input type="password" id="nueva">
+    <label for="confirmar">Confirmar nueva contraseña</label>
+    <input type="password" id="confirmar">
+    <button onclick="cambiarContrasena()">Actualizar contraseña</button>
+    <p id="mensaje-cambio" class="error"></p>
   </div>
 </body>
 </html>
