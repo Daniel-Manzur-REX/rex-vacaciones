@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - REX Vacaciones</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      text-align: center;
+      color: #1a4d2e;
+      margin-bottom: 1rem;
+    }
+    label, input, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input#pass {
+      margin-bottom: 2rem;
+    }
+    button {
+      background-color: #1a4d2e;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>REX Vacaciones</h1>
+    <form onsubmit="event.preventDefault(); login();">
+      <label for="user">Usuario</label>
+      <input type="text" id="user">
+      <label for="pass">Contraseña</label>
+      <input type="password" id="pass">
+      <p id="error" class="error"></p>
+      <button type="submit">Iniciar sesión</button>
+    </form>
+  </div>
+
+  <script>
+    function login() {
+      const user = document.getElementById('user').value;
+      const pass = document.getElementById('pass').value;
+      const error = document.getElementById('error');
+
+      if (user === 'admin' && pass === '30051992') {
+        alert('Bienvenido Administrador');
+        window.location.href = 'rex-vacaciones.html';
+        return;
+      }
+
+      const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+      const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
+
+      if (encontrado) {
+        alert(`Bienvenido ${encontrado.nombre}`);
+        localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
+        window.location.href = 'usuario.html';
+      } else {
+        error.textContent = 'Credenciales incorrectas';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador - REX Vacaciones</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1a4d2e;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+    }
+    .logout {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+    .logout button {
+      background-color: #b00020;
+      padding: 0.3rem 0.75rem;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+      border-radius: 4px;
+    }
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #1a4d2e;
+      margin-top: 2rem;
+    }
+    label, input, button, select, textarea {
+      display: block;
+      width: 100%;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #1a4d2e;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e8f5e9;
+    }
+    .acciones {
+      position: relative;
+    }
+    .panel {
+      display: none;
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      z-index: 10;
+      width: 250px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .acciones.active .panel {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Panel de Administrador – REX Vacaciones</h1>
+    <div class="logout">
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Crear nuevo usuario</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre">
+        </div>
+        <div>
+          <label for="usuario">Nombre de usuario</label>
+          <input type="text" id="usuario">
+        </div>
+        <div>
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo">
+        </div>
+        <div>
+          <label for="contrasena">Contraseña</label>
+          <input type="password" id="contrasena">
+        </div>
+        <div>
+          <label for="dias">Días totales de vacaciones</label>
+          <input type="number" id="dias">
+        </div>
+        <div>
+          <label for="fecha-renovacion">Fecha de renovación anual</label>
+          <input type="date" id="fecha-renovacion">
+        </div>
+      </div>
+      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
+    </section>
+
+    <section>
+      <h2>Lista de usuarios</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Usuario</th>
+            <th>Días totales</th>
+            <th>Usados</th>
+            <th>Renovación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-usuarios"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Solicitudes de vacaciones</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Justificación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-solicitudes"></tbody>
+      </table>
+    </section>
+  </main>
+  <script>
+    const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
+
+    function cerrarSesion() {
+      localStorage.removeItem('usuarioActivo');
+      window.location.href = 'login.html';
+    }
+
+    function guardarUsuarios() {
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    }
+
+    function guardarSolicitudes() {
+      localStorage.setItem('solicitudes', JSON.stringify(solicitudes));
+    }
+
+    function renderUsuarios() {
+      const tbody = document.getElementById('tabla-usuarios');
+      tbody.innerHTML = '';
+      usuarios.forEach((usuario, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${usuario.nombre}</td>
+          <td>${usuario.correo}</td>
+          <td>${usuario.usuario}</td>
+          <td>${usuario.dias}</td>
+          <td>${usuario.usados}</td>
+          <td>${usuario.renovacion}</td>
+          <td class="acciones">
+            <button onclick="togglePanel(event, ${index})">Editar</button>
+            <div class="panel">
+              <label>Días totales</label>
+              <input type="number" min="0" value="${usuario.dias}" onchange="if (this.value >= 0) { usuarios[${index}].dias=parseInt(this.value);guardarUsuarios(); }">
+              <label>Días usados</label>
+              <input type="number" min="0" value="${usuario.usados}" onchange="if (this.value >= 0) { usuarios[${index}].usados=parseInt(this.value);guardarUsuarios(); }">
+              <label>Renovación</label>
+              <input type="date" value="${usuario.renovacion}" onchange="if (new Date(this.value) >= new Date()) { usuarios[${index}].renovacion=this.value;guardarUsuarios(); } else { alert('La fecha debe ser futura.'); this.value = usuarios[${index}].renovacion; }">
+              <button onclick="guardarUsuarios();renderUsuarios();">Guardar</button>
+              <button onclick="eliminarUsuario(${index})" style="background:#b00020;margin-top:0.5rem;">Eliminar</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderSolicitudes() {
+      const tbody = document.getElementById('tabla-solicitudes');
+      tbody.innerHTML = '';
+      solicitudes.forEach((solicitud, index) => {
+        const justificacion = solicitud.justificacion || '';
+        const disableButtons = solicitud.estado !== 'Pendiente';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${solicitud.usuario}</td>
+          <td>${solicitud.inicio}</td>
+          <td>${solicitud.fin}</td>
+          <td>${solicitud.estado}</td>
+          <td>${justificacion}</td>
+          <td class="acciones">
+            <button onclick="togglePanel(event, 'solicitud-${index}')">Acciones</button>
+            <div class="panel" id="solicitud-${index}">
+              <button onclick="aprobar(${index})" ${disableButtons ? 'disabled' : ''}>Aprobar</button>
+              <button onclick="rechazar(${index})" ${disableButtons ? 'disabled' : ''}>Rechazar</button>
+              <button onclick="eliminarSolicitud(${index})" style="background:#b00020;margin-top:0.5rem;">Eliminar</button>
+            </div>
+          </td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    function crearUsuario() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const usuario = document.getElementById('usuario').value.trim();
+      const correo = document.getElementById('correo').value.trim();
+      const contrasena = document.getElementById('contrasena').value;
+      const dias = parseInt(document.getElementById('dias').value);
+      const renovacion = document.getElementById('fecha-renovacion').value;
+
+      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || new Date(renovacion) < new Date()) {
+        alert('Por favor complete todos los campos correctamente. La fecha debe ser futura y los días no pueden ser negativos.');
+        return;
+      }
+
+      usuarios.push({ nombre, usuario, correo, contrasena, dias, usados: 0, renovacion });
+      guardarUsuarios();
+      renderUsuarios();
+      document.querySelectorAll('input').forEach(i => i.value = '');
+    }
+
+    function togglePanel(e, id) {
+      document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+      e.currentTarget.parentElement.classList.toggle('active');
+    }
+
+    function eliminarUsuario(index) {
+      if (confirm('¿Seguro que deseas eliminar este usuario?')) {
+        usuarios.splice(index, 1);
+        guardarUsuarios();
+        renderUsuarios();
+      }
+    }
+
+    function eliminarSolicitud(index) {
+      if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
+        solicitudes.splice(index, 1);
+        guardarSolicitudes();
+        renderSolicitudes();
+      }
+    }
+
+    function aprobar(index) {
+      const solicitud = solicitudes[index];
+      if (solicitud.estado !== 'Pendiente') return;
+      solicitud.estado = 'Aprobado';
+      solicitud.justificacion = '';
+
+      const inicio = new Date(solicitud.inicio);
+      const fin = new Date(solicitud.fin);
+      const diasTomados = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+
+      const usuario = usuarios.find(u => u.usuario === solicitud.usuario);
+      if (usuario) {
+        usuario.usados += diasTomados;
+        guardarUsuarios();
+      }
+
+      guardarSolicitudes();
+      renderSolicitudes();
+      renderUsuarios();
+    }
+
+    function rechazar(index) {
+      const solicitud = solicitudes[index];
+      if (solicitud.estado !== 'Pendiente') return;
+      const motivo = prompt('Ingrese la justificación del rechazo:');
+      if (motivo && motivo.trim() !== '') {
+        solicitud.estado = 'Rechazado';
+        solicitud.justificacion = motivo.trim();
+        guardarSolicitudes();
+        renderSolicitudes();
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.acciones')) {
+        document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+      }
+    });
+
+    renderUsuarios();
+    renderSolicitudes();
+  </script>
+</body>
+</html>

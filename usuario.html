@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel del Usuario - REX Vacaciones</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      color: #1a4d2e;
+    }
+    .info, .solicitud, .historial {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    label, input, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input[type="date"] {
+      max-width: 250px;
+    }
+    button {
+      background-color: #1a4d2e;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .logout {
+      max-width: 200px;
+      margin: 0 auto 2rem auto;
+      text-align: center;
+    }
+    .error {
+      color: red;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e8f5e9;
+    }
+  </style>
+</head>
+<body>
+  <div class="logout">
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+
+  <div class="info">
+    <h1 id="nombreUsuario"></h1>
+    <p><strong>Días restantes:</strong> <span id="diasRestantes"></span></p>
+    <p><strong>Días utilizados:</strong> <span id="diasUsados"></span></p>
+    <p><strong>Fecha de renovación:</strong> <span id="fechaRenovacion"></span></p>
+  </div>
+
+  <div class="solicitud">
+    <h2>Solicitar vacaciones</h2>
+    <label for="inicio">Fecha de inicio:</label>
+    <input type="date" id="inicio">
+    <label for="fin">Fecha de fin:</label>
+    <input type="date" id="fin">
+    <p class="error" id="leyendaError" style="display:none"></p>
+    <button id="btnSolicitud" onclick="solicitarVacaciones()" style="width: auto; padding: 0.5rem 1.25rem;">Enviar solicitud</button>
+  </div>
+
+  <div class="historial">
+    <h2>Mis solicitudes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Inicio</th>
+          <th>Fin</th>
+          <th>Estado</th>
+          <th>Justificación</th>
+        </tr>
+      </thead>
+      <tbody id="tablaSolicitudes"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem('usuarioActivo'));
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
+
+    if (!usuario) {
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('nombreUsuario').textContent = `Bienvenido, ${usuario.nombre}`;
+    document.getElementById('diasRestantes').textContent = usuario.dias - usuario.usados;
+    document.getElementById('diasUsados').textContent = usuario.usados;
+    document.getElementById('fechaRenovacion').textContent = usuario.renovacion;
+
+    let enviando = false;
+
+    function solicitarVacaciones() {
+      if (enviando) return;
+      enviando = true;
+
+      const inicioInput = document.getElementById('inicio');
+      const finInput = document.getElementById('fin');
+      const inicio = new Date(inicioInput.value);
+      const fin = new Date(finInput.value);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      const diferencia = (inicio - hoy) / (1000 * 60 * 60 * 24);
+
+      if (isNaN(inicio) || isNaN(fin) || inicio > fin || diferencia < 7) {
+        mostrarError('Las fechas deben solicitarse con al menos 7 días de anticipación.');
+        enviando = false;
+        return;
+      }
+
+      const traslape = solicitudes.some(s => {
+        return s.usuario === usuario.usuario &&
+          ((new Date(s.inicio) <= fin && new Date(s.fin) >= inicio));
+      });
+
+      if (traslape) {
+        mostrarError('Ya tienes una solicitud que se traslapa con estas fechas.');
+        enviando = false;
+        return;
+      }
+
+      ocultarError();
+
+      solicitudes.push({
+        usuario: usuario.usuario,
+        inicio: inicio.toISOString().split('T')[0],
+        fin: fin.toISOString().split('T')[0],
+        estado: 'Pendiente',
+        justificacion: ''
+      });
+
+      localStorage.setItem('solicitudes', JSON.stringify(solicitudes));
+      mostrarSolicitudes();
+      inicioInput.value = '';
+      finInput.value = '';
+
+      setTimeout(() => {
+        enviando = false;
+      }, 1000);
+    }
+
+    function mostrarError(mensaje) {
+      const error = document.getElementById('leyendaError');
+      error.textContent = mensaje;
+      error.style.display = 'block';
+    }
+
+    function ocultarError() {
+      const error = document.getElementById('leyendaError');
+      error.style.display = 'none';
+    }
+
+    function mostrarSolicitudes() {
+      const tbody = document.getElementById('tablaSolicitudes');
+      tbody.innerHTML = '';
+      solicitudes.filter(s => s.usuario === usuario.usuario).forEach(s => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${s.inicio}</td>
+          <td>${s.fin}</td>
+          <td>${s.estado}</td>
+          <td>${s.justificacion || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem('usuarioActivo');
+      window.location.href = 'login.html';
+    }
+
+    mostrarSolicitudes();
+  </script>
+</body>
+</html>
