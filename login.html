@@ -109,8 +109,9 @@
       });
     }
 
-    document.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
+    document.getElementById('pass').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
         login();
       }
     });
