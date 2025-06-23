@@ -51,12 +51,14 @@
       margin-bottom: 1rem;
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+    import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js';
+
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
       authDomain: "rex-vacaciones.firebaseapp.com",
+      databaseURL: "https://rex-vacaciones-default-rtdb.firebaseio.com",
       projectId: "rex-vacaciones",
       storageBucket: "rex-vacaciones.firebasestorage.app",
       messagingSenderId: "919755172448",
@@ -64,8 +66,43 @@
       measurementId: "G-Q8CX1R0RXY"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.login = async function login() {
+      const user = document.getElementById('user').value;
+      const pass = document.getElementById('pass').value;
+      const error = document.getElementById('error');
+
+      if (user === 'admin' && pass === '30051992') {
+        alert('Bienvenido Administrador');
+        localStorage.setItem('usuarioActivo', JSON.stringify({ usuario: 'admin', contrasena: '30051992' }));
+        window.location.href = 'rex-vacaciones.html';
+        return;
+      }
+
+      try {
+        const snapshot = await get(ref(db, 'usuarios'));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const usuarios = Object.values(data);
+          const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
+
+          if (encontrado) {
+            alert(`Bienvenido ${encontrado.nombre}`);
+            localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
+            window.location.href = 'usuario.html';
+          } else {
+            error.textContent = 'Credenciales incorrectas';
+          }
+        } else {
+          error.textContent = 'No hay usuarios registrados';
+        }
+      } catch (err) {
+        console.error(err);
+        error.textContent = 'Error al conectarse con la base de datos';
+      }
+    };
   </script>
 </head>
 <body>
@@ -80,36 +117,5 @@
       <button type="submit">Iniciar sesión</button>
     </form>
   </div>
-
-  <script>
-    function login() {
-      const user = document.getElementById('user').value;
-      const pass = document.getElementById('pass').value;
-      const error = document.getElementById('error');
-
-      if (user === 'admin' && pass === '30051992') {
-        alert('Bienvenido Administrador');
-        localStorage.setItem('usuarioActivo', JSON.stringify({ usuario: 'admin', contrasena: '30051992' }));
-        window.location.href = 'rex-vacaciones.html';
-        return;
-      }
-
-      db.ref('usuarios').once('value').then(snapshot => {
-        const data = snapshot.val();
-        const usuarios = data ? Object.values(data) : [];
-        const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
-
-        if (encontrado) {
-          alert(`Bienvenido ${encontrado.nombre}`);
-          localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
-          window.location.href = 'usuario.html';
-        } else {
-          error.textContent = 'Credenciales incorrectas';
-        }
-      });
-    }
-
-    
-  </script>
 </body>
 </html>
