@@ -248,17 +248,7 @@
     return;
   }
 
-  const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-  usuarios.push(nuevoUsuario);
-  guardarUsuarios();
-  renderUsuarios();
-
-  document.getElementById('nombre').value = '';
-  document.getElementById('usuario').value = '';
-  document.getElementById('correo').value = '';
-  document.getElementById('contrasena').value = '';
-  document.getElementById('dias').value = '';
-  document.getElementById('fecha-renovacion').value = '';
+  
 }
 
       const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
