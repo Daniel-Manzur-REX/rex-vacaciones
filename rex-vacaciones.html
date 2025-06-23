@@ -92,12 +92,11 @@
     }
   </style>
   <script>
-  // Verificación de sesión activa
-  const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
-  if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
-    window.location.href = 'login.html';
-  }
-</script>
+    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+    if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
+      window.location.href = 'login.html';
+    }
+  </script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
@@ -199,7 +198,7 @@
       db.ref('solicitudes').once('value').then(snapshot => {
         const data = snapshot.val();
         if (data) {
-          Object.values(data).forEach((solicitud, index) => {
+          Object.entries(data).forEach(([key, solicitud]) => {
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>${solicitud.usuario}</td>
@@ -210,9 +209,9 @@
               <td class="acciones">
                 <button onclick="mostrarPanel(this)">Acciones</button>
                 <div class="panel-acciones">
-                  <button onclick="aprobarSolicitud('${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Aprobar</button>
-                  <button onclick="rechazarSolicitud('${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Rechazar</button>
-                  <button onclick="eliminarSolicitud('${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Eliminar</button>
+                  <button onclick="aprobarSolicitud('${key}', '${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Aprobar</button>
+                  <button onclick="rechazarSolicitud('${key}', '${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Rechazar</button>
+                  <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
                 </div>
               </td>`;
             tbody.appendChild(row);
@@ -232,19 +231,19 @@
       }
     });
 
-    function aprobarSolicitud(usuario, inicio, fin) {
-      alert('Aprobado: ' + usuario);
+    function aprobarSolicitud(key, usuario, inicio, fin) {
+      db.ref(`solicitudes/${key}`).update({ estado: 'Aprobado', justificacion: '' }).then(cargarSolicitudes);
     }
 
-    function rechazarSolicitud(usuario, inicio, fin) {
+    function rechazarSolicitud(key, usuario, inicio, fin) {
       const motivo = prompt('Motivo del rechazo:');
       if (motivo) {
-        alert('Rechazado con motivo: ' + motivo);
+        db.ref(`solicitudes/${key}`).update({ estado: 'Rechazado', justificacion: motivo }).then(cargarSolicitudes);
       }
     }
 
-    function eliminarSolicitud(usuario, inicio, fin) {
-      alert('Solicitud eliminada para: ' + usuario);
+    function eliminarSolicitud(key) {
+      db.ref(`solicitudes/${key}`).remove().then(cargarSolicitudes);
     }
 
     window.onload = () => {
