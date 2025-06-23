@@ -224,11 +224,7 @@
       console.error('Error al guardar usuarios:', error);
       alert('Hubo un problema al guardar los usuarios en Firebase. Revisa la consola para más detalles.');
     });
-};
-      usuarios.forEach(user => {
-        usuariosObj[user.usuario] = user;
-      });
-      db.ref('usuarios').set(usuariosObj);
+}
     }
 
     function guardarSolicitudes() {
