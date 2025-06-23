@@ -51,10 +51,9 @@
       margin-bottom: 1rem;
     }
   </style>
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js';
-
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
       authDomain: "rex-vacaciones.firebaseapp.com",
@@ -66,12 +65,12 @@
       measurementId: "G-Q8CX1R0RXY"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    window.login = async function login() {
-      const user = document.getElementById('user').value;
-      const pass = document.getElementById('pass').value;
+    function login() {
+      const user = document.getElementById('user').value.trim();
+      const pass = document.getElementById('pass').value.trim();
       const error = document.getElementById('error');
 
       if (user === 'admin' && pass === '30051992') {
@@ -81,28 +80,29 @@
         return;
       }
 
-      try {
-        const snapshot = await get(ref(db, 'usuarios'));
-        if (snapshot.exists()) {
+      db.ref('usuarios').once('value')
+        .then(snapshot => {
           const data = snapshot.val();
-          const usuarios = Object.values(data);
-          const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
+          if (data) {
+            const usuarios = Object.values(data);
+            const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
 
-          if (encontrado) {
-            alert(`Bienvenido ${encontrado.nombre}`);
-            localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
-            window.location.href = 'usuario.html';
+            if (encontrado) {
+              alert(`Bienvenido ${encontrado.nombre}`);
+              localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
+              window.location.href = 'usuario.html';
+            } else {
+              error.textContent = 'Credenciales incorrectas';
+            }
           } else {
-            error.textContent = 'Credenciales incorrectas';
+            error.textContent = 'No hay usuarios registrados';
           }
-        } else {
-          error.textContent = 'No hay usuarios registrados';
-        }
-      } catch (err) {
-        console.error(err);
-        error.textContent = 'Error al conectarse con la base de datos';
-      }
-    };
+        })
+        .catch(err => {
+          console.error(err);
+          error.textContent = 'Error al conectarse con la base de datos';
+        });
+    }
   </script>
 </head>
 <body>
