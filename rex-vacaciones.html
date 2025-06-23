@@ -91,15 +91,86 @@
       display: block;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
+      authDomain: "rex-vacaciones.firebaseapp.com",
+      databaseURL: "https://rex-vacaciones-default-rtdb.firebaseio.com",
+      projectId: "rex-vacaciones",
+      storageBucket: "rex-vacaciones.appspot.com",
+      messagingSenderId: "919755172448",
+      appId: "1:919755172448:web:3ed268536ae199f7a67105",
+      measurementId: "G-Q8CX1R0RXY"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
 </head>
 <body>
-  
-
+  <header>
+    <h1>Panel de Administrador – REX Vacaciones</h1>
+    <div class="logout">
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Crear nuevo usuario</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre">
+        </div>
+        <div>
+          <label for="usuario">Nombre de usuario</label>
+          <input type="text" id="usuario">
+        </div>
+        <div>
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo">
+        </div>
+        <div>
+          <label for="contrasena">Contraseña</label>
+          <input type="password" id="contrasena">
+        </div>
+        <div>
+          <label for="dias">Días totales de vacaciones</label>
+          <input type="number" id="dias">
+        </div>
+        <div>
+          <label for="fecha-renovacion">Fecha de renovación anual</label>
+          <input type="date" id="fecha-renovacion">
+        </div>
+      </div>
+      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
+    </section>
+    <section>
+      <h2>Lista de usuarios</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Usuario</th>
+            <th>Días totales</th>
+            <th>Usados</th>
+            <th>Renovación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-usuarios"></tbody>
+      </table>
+    </section>
+  </main>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
       if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
         window.location.href = 'login.html';
+      } else {
+        cargarUsuarios();
       }
     });
 
@@ -108,18 +179,35 @@
       window.location.href = 'login.html';
     }
 
-    let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-    let solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
-
-    function guardarUsuarios() {
-      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    function crearUsuario() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const usuario = document.getElementById('usuario').value.trim();
+      const correo = document.getElementById('correo').value.trim();
+      const contrasena = document.getElementById('contrasena').value;
+      const dias = parseInt(document.getElementById('dias').value);
+      const renovacion = document.getElementById('fecha-renovacion').value;
+      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
+        alert('Todos los campos son obligatorios');
+        return;
+      }
+      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+      firebase.database().ref('usuarios/' + usuario).set(nuevoUsuario)
+        .then(() => {
+          alert('Usuario creado correctamente');
+          cargarUsuarios();
+        });
     }
 
-    function guardarSolicitudes() {
-      localStorage.setItem('solicitudes', JSON.stringify(solicitudes));
+    function cargarUsuarios() {
+      firebase.database().ref('usuarios').once('value')
+        .then(snapshot => {
+          const data = snapshot.val();
+          const usuarios = data ? Object.values(data) : [];
+          renderUsuarios(usuarios);
+        });
     }
 
-    function renderUsuarios() {
+    function renderUsuarios(usuarios) {
       const tbody = document.getElementById('tabla-usuarios');
       tbody.innerHTML = '';
       usuarios.forEach((usuario, index) => {
@@ -135,24 +223,27 @@
             <button onclick="togglePanel(event, ${index})">Editar</button>
             <div class="panel">
               <label>Días totales</label>
-              <input type="number" value="${usuario.dias}" onchange="usuarios[${index}].dias=this.value;guardarUsuarios();">
+              <input type="number" value="${usuario.dias}" onchange="actualizarUsuario('${usuario.usuario}', 'dias', this.value)">
               <label>Días usados</label>
-              <input type="number" value="${usuario.usados}" onchange="usuarios[${index}].usados=this.value;guardarUsuarios();">
+              <input type="number" value="${usuario.usados}" onchange="actualizarUsuario('${usuario.usuario}', 'usados', this.value)">
               <label>Renovación</label>
-              <input type="date" value="${usuario.renovacion}" onchange="usuarios[${index}].renovacion=this.value;guardarUsuarios();">
-              <button onclick="guardarUsuarios();renderUsuarios();">Guardar</button>
-              <button onclick="eliminarUsuario(${index})">Eliminar</button>
+              <input type="date" value="${usuario.renovacion}" onchange="actualizarUsuario('${usuario.usuario}', 'renovacion', this.value)">
+              <button onclick="cargarUsuarios()">Guardar</button>
+              <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
             </div>
           </td>`;
         tbody.appendChild(row);
       });
     }
 
-    function eliminarUsuario(index) {
+    function actualizarUsuario(usuarioId, campo, valor) {
+      firebase.database().ref('usuarios/' + usuarioId + '/' + campo).set(valor);
+    }
+
+    function eliminarUsuario(usuarioId) {
       if (confirm('¿Seguro que deseas eliminar este usuario?')) {
-        usuarios.splice(index, 1);
-        guardarUsuarios();
-        renderUsuarios();
+        firebase.database().ref('usuarios/' + usuarioId).remove()
+          .then(() => cargarUsuarios());
       }
     }
 
@@ -166,29 +257,6 @@
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
-
-    function crearUsuario() {
-      const nombre = document.getElementById('nombre').value.trim();
-      const usuario = document.getElementById('usuario').value.trim();
-      const correo = document.getElementById('correo').value.trim();
-      const contrasena = document.getElementById('contrasena').value;
-      const dias = parseInt(document.getElementById('dias').value);
-      const renovacion = document.getElementById('fecha-renovacion').value;
-      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
-        alert('Todos los campos son obligatorios');
-        return;
-      }
-      if (usuarios.some(u => u.usuario === usuario)) {
-        alert('Ese nombre de usuario ya está en uso');
-        return;
-      }
-      usuarios.push({ nombre, usuario, correo, contrasena, dias, usados: 0, renovacion });
-      guardarUsuarios();
-      renderUsuarios();
-      document.querySelectorAll('input').forEach(input => input.value = '');
-    }
-
-    renderUsuarios();
   </script>
 </body>
 </html>
