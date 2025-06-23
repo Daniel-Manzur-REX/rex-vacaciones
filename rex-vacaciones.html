@@ -91,8 +91,8 @@
       display: block;
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
@@ -126,7 +126,8 @@
       }
 
       const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-      db.ref('usuarios/' + usuario.replace(/[.#$\[\]]/g, '_')).set(nuevoUsuario, error => {
+      const usuarioKey = usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref('usuarios/' + usuarioKey).set(nuevoUsuario, error => {
         if (error) {
           alert('Error al guardar el usuario.');
         } else {
