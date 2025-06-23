@@ -221,24 +221,7 @@
       db.ref('solicitudes').set(solicitudesObj);
     }
 
-    function crearUsuario() {
-      const nombre = document.getElementById('nombre').value.trim();
-      const usuario = document.getElementById('usuario').value.trim();
-      const correo = document.getElementById('correo').value.trim();
-      const contrasena = document.getElementById('contrasena').value;
-      const dias = parseInt(document.getElementById('dias').value);
-      const renovacion = document.getElementById('fecha-renovacion').value;
-
-      const hoy = new Date();
-      hoy.setHours(0,0,0,0);
-      const fechaRenovacion = new Date(renovacion);
-      fechaRenovacion.setHours(0,0,0,0);
-
-      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || fechaRenovacion < hoy) {
-        alert('Por favor complete todos los campos correctamente. La fecha debe ser futura y los días no pueden ser negativos.');
-        return;
-      }
-
+    
       if (usuarios.some(u => u.usuario === usuario)) {
         alert('El nombre de usuario ya existe. Elija otro.');
         return;
