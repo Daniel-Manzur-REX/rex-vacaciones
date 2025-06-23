@@ -223,10 +223,7 @@ const db = firebase.database();
     }
 
     
-      if (usuarios.some(u => u.usuario === usuario)) {
-        alert('El nombre de usuario ya existe. Elija otro.');
-        return;
-      }
+      
 
       const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
       usuarios.push(nuevoUsuario);
