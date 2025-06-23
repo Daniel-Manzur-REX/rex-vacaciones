@@ -61,6 +61,21 @@
       background-color: #e8f5e9;
     }
   </style>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
+    authDomain: "rex-vacaciones.firebaseapp.com",
+    projectId: "rex-vacaciones",
+    storageBucket: "rex-vacaciones.firebasestorage.app",
+    messagingSenderId: "919755172448",
+    appId: "1:919755172448:web:3ed268536ae199f7a67105",
+    measurementId: "G-Q8CX1R0RXY"
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
 </head>
 <body>
   <div class="logout">
@@ -100,15 +115,43 @@
   </div>
 
   <script>
-    const usuario = JSON.parse(localStorage.getItem('usuarioActivo'));
-    const solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
+    let usuario = JSON.parse(localStorage.getItem('usuarioActivo'));
+if (!usuario) window.location.href = 'login.html';
+
+db.ref('usuarios').once('value').then(snapshot => {
+  const data = snapshot.val();
+  if (data && data[usuario.usuario]) {
+    usuario = data[usuario.usuario];
+    localStorage.setItem('usuarioActivo', JSON.stringify(usuario));
+    
+    
+    
+    
+  } else {
+    cerrarSesion();
+  }
+});
+    let solicitudes = [];
+db.ref('solicitudes').once('value').then(snapshot => {
+  const data = snapshot.val();
+  solicitudes = data ? Object.values(data) : [];
+  mostrarSolicitudes();
+});
 
     if (!usuario) {
       window.location.href = 'login.html';
     }
 
     document.getElementById('nombreUsuario').textContent = `Bienvenido, ${usuario.nombre}`;
-    document.getElementById('diasRestantes').textContent = usuario.dias - usuario.usados;
+    const diasDisponibles = usuario.dias - usuario.usados;
+document.getElementById('diasRestantes').textContent = diasDisponibles;
+if (diasDisponibles <= 0) {
+  const btn = document.getElementById('btnSolicitud');
+  btn.disabled = true;
+  btn.style.backgroundColor = '#ccc';
+  btn.style.cursor = 'not-allowed';
+  mostrarError('No tienes días de vacaciones disponibles.');
+}
     document.getElementById('diasUsados').textContent = usuario.usados;
     document.getElementById('fechaRenovacion').textContent = usuario.renovacion;
 
@@ -154,7 +197,11 @@
         justificacion: ''
       });
 
-      localStorage.setItem('solicitudes', JSON.stringify(solicitudes));
+      const solicitudesObj = {};
+solicitudes.forEach((s, i) => {
+  solicitudesObj[`solicitud_${i}`] = s;
+});
+db.ref('solicitudes').set(solicitudesObj);
       mostrarSolicitudes();
       inicioInput.value = '';
       finInput.value = '';
