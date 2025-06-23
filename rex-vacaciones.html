@@ -172,39 +172,37 @@
       </table>
     </section>
   </main>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
-    authDomain: "rex-vacaciones.firebaseapp.com",
-    projectId: "rex-vacaciones",
-    storageBucket: "rex-vacaciones.firebasestorage.app",
-    messagingSenderId: "919755172448",
-    appId: "1:919755172448:web:3ed268536ae199f7a67105",
-    measurementId: "G-Q8CX1R0RXY"
-  };
 
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-</script>
-<script>
-    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
-    if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
-      window.location.href = 'login.html';
-    }
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
+      authDomain: "rex-vacaciones.firebaseapp.com",
+      projectId: "rex-vacaciones",
+      storageBucket: "rex-vacaciones.firebasestorage.app",
+      messagingSenderId: "919755172448",
+      appId: "1:919755172448:web:3ed268536ae199f7a67105",
+      measurementId: "G-Q8CX1R0RXY"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     let usuarios = [];
-db.ref('usuarios').once('value').then(snapshot => {
-  const data = snapshot.val();
-  usuarios = data ? Object.values(data) : [];
-  renderUsuarios();
-});
     let solicitudes = [];
-db.ref('solicitudes').once('value').then(snapshot => {
-  const data = snapshot.val();
-  solicitudes = data ? Object.values(data) : [];
-  renderSolicitudes();
-});
+
+    db.ref('usuarios').once('value').then(snapshot => {
+      const data = snapshot.val();
+      usuarios = data ? Object.values(data) : [];
+      renderUsuarios();
+    });
+
+    db.ref('solicitudes').once('value').then(snapshot => {
+      const data = snapshot.val();
+      solicitudes = data ? Object.values(data) : [];
+      renderSolicitudes();
+    });
 
     function cerrarSesion() {
       localStorage.removeItem('usuarioActivo');
@@ -212,22 +210,40 @@ db.ref('solicitudes').once('value').then(snapshot => {
     }
 
     function guardarUsuarios() {
-  const usuariosObj = {};
-  usuarios.forEach(user => {
-    usuariosObj[user.usuario] = user;
-  });
-  db.ref('usuarios').set(usuariosObj);
-}
+      const usuariosObj = {};
+      usuarios.forEach(user => {
+        usuariosObj[user.usuario] = user;
+      });
+      db.ref('usuarios').set(usuariosObj);
+    }
 
     function guardarSolicitudes() {
-  const solicitudesObj = {};
-  
-};
-  solicitudes.forEach((s, i) => {
-    solicitudesObj[`solicitud_${i}`] = s;
-  });
-  db.ref('solicitudes').set(solicitudesObj);
-}
+      const solicitudesObj = {};
+      solicitudes.forEach((s, i) => {
+        solicitudesObj[`solicitud_${i}`] = s;
+      });
+      db.ref('solicitudes').set(solicitudesObj);
+    }
+
+    function crearUsuario() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const usuario = document.getElementById('usuario').value.trim();
+      const correo = document.getElementById('correo').value.trim();
+      const contrasena = document.getElementById('contrasena').value;
+      const dias = parseInt(document.getElementById('dias').value);
+      const renovacion = document.getElementById('fecha-renovacion').value;
+
+      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || new Date(renovacion) < new Date()) {
+        alert('Por favor complete todos los campos correctamente. La fecha debe ser futura y los días no pueden ser negativos.');
+        return;
+      }
+
+      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+      usuarios.push(nuevoUsuario);
+      guardarUsuarios();
+      renderUsuarios();
+      document.querySelectorAll('input').forEach(i => i.value = '');
+    }
 
     function renderUsuarios() {
       const tbody = document.getElementById('tabla-usuarios');
@@ -260,29 +276,14 @@ db.ref('solicitudes').once('value').then(snapshot => {
     }
 
     function renderSolicitudes() {
-  const tbody = document.getElementById('tabla-solicitudes');
-  tbody.innerHTML = '';
-  solicitudes.forEach((solicitud, index) => {
-    const justificacion = solicitud.justificacion || '';
-    const disableButtons = solicitud.estado !== 'Pendiente';
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${solicitud.usuario}</td>
-      <td>${solicitud.inicio}</td>
-      <td>${solicitud.fin}</td>
-      <td>${solicitud.estado}</td>
-      <td>${justificacion}</td>
-      <td class="acciones">
-        <button onclick="togglePanel(event, 'solicitud-${index}')">Acciones</button>
-        <div class="panel" id="solicitud-${index}">
-          <button onclick="aprobar(${index})" ${disableButtons ? 'disabled' : ''}>Aprobar</button>
-          <button onclick="rechazar(${index})" ${disableButtons ? 'disabled' : ''}>Rechazar</button>
-          <button onclick="eliminarSolicitud(${index})" style="background:#b00020;margin-top:0.5rem;">Eliminar</button>
-        </div>
-      </td>`;
-    tbody.appendChild(row);
-  });
-}</td>
+      const tbody = document.getElementById('tabla-solicitudes');
+      tbody.innerHTML = '';
+      solicitudes.forEach((solicitud, index) => {
+        const justificacion = solicitud.justificacion || '';
+        const disableButtons = solicitud.estado !== 'Pendiente';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${solicitud.usuario}</td>
           <td>${solicitud.inicio}</td>
           <td>${solicitud.fin}</td>
           <td>${solicitud.estado}</td>
@@ -297,32 +298,6 @@ db.ref('solicitudes').once('value').then(snapshot => {
           </td>`;
         tbody.appendChild(row);
       });
-    }
-
-    function crearUsuario() {
-  const nombre = document.getElementById('nombre').value.trim();
-  const usuario = document.getElementById('usuario').value.trim();
-  const correo = document.getElementById('correo').value.trim();
-  const contrasena = document.getElementById('contrasena').value;
-  const dias = parseInt(document.getElementById('dias').value);
-  const renovacion = document.getElementById('fecha-renovacion').value;
-
-  if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || dias < 0 || !renovacion || new Date(renovacion) < new Date()) {
-    alert('Por favor complete todos los campos correctamente. La fecha debe ser futura y los días no pueden ser negativos.');
-    return;
-  }
-
-  const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-  usuarios.push(nuevoUsuario);
-  guardarUsuarios();
-  renderUsuarios();
-  document.querySelectorAll('input').forEach(i => i.value = '');
-}
-
-      usuarios.push({ nombre, usuario, correo, contrasena, dias, usados: 0, renovacion });
-      guardarUsuarios();
-      renderUsuarios();
-      document.querySelectorAll('input').forEach(i => i.value = '');
     }
 
     function togglePanel(e, id) {
@@ -347,26 +322,21 @@ db.ref('solicitudes').once('value').then(snapshot => {
     }
 
     function aprobar(index) {
-  const solicitud = solicitudes[index];
-  if (solicitud.estado !== 'Pendiente') return;
-  solicitud.estado = 'Aprobado';
-  solicitud.justificacion = '';
+      const solicitud = solicitudes[index];
+      if (solicitud.estado !== 'Pendiente') return;
+      solicitud.estado = 'Aprobado';
+      solicitud.justificacion = '';
 
-  const inicio = new Date(solicitud.inicio);
-  const fin = new Date(solicitud.fin);
-  const diasTomados = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+      const inicio = new Date(solicitud.inicio);
+      const fin = new Date(solicitud.fin);
+      const diasTomados = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
 
-  const usuario = usuarios.find(u => u.usuario === solicitud.usuario);
-  if (usuario) {
-    if (!usuario.usados) usuario.usados = 0;
-    usuario.usados += diasTomados;
-    guardarUsuarios();
-  }
-
-  guardarSolicitudes();
-  renderSolicitudes();
-  renderUsuarios();
-}
+      const usuario = usuarios.find(u => u.usuario === solicitud.usuario);
+      if (usuario) {
+        if (!usuario.usados) usuario.usados = 0;
+        usuario.usados += diasTomados;
+        guardarUsuarios();
+      }
 
       guardarSolicitudes();
       renderSolicitudes();
@@ -390,8 +360,6 @@ db.ref('solicitudes').once('value').then(snapshot => {
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
-
-    
   </script>
 </body>
 </html>
