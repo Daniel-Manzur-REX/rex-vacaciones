@@ -211,21 +211,7 @@
       window.location.href = 'login.html';
     }
 
-    function guardarUsuarios() {
-  const usuariosObj = {};
-  usuarios.forEach(user => {
-    usuariosObj[user.usuario] = user;
-  });
-  db.ref('usuarios').set(usuariosObj)
-    .then(() => {
-      console.log('Usuarios guardados correctamente');
-    })
-    .catch((error) => {
-      console.error('Error al guardar usuarios:', error);
-      alert('Hubo un problema al guardar los usuarios en Firebase. Revisa la consola para más detalles.');
-    });
-}
-    }
+    $1
 
     function guardarSolicitudes() {
       const solicitudesObj = {};
@@ -386,9 +372,7 @@
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
-  </script>
-<script>
-  window.crearUsuario = crearUsuario;
+    window.crearUsuario = crearUsuario;
 </script>
 </body>
 </html>
