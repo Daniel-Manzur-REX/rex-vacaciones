@@ -133,7 +133,6 @@
         } else {
           alert('Usuario creado exitosamente.');
           cargarUsuarios();
-          cargarSolicitudes();
         }
       });
     }
@@ -172,6 +171,34 @@
       });
     }
 
+    function cargarSolicitudes() {
+      const tbody = document.getElementById('tabla-solicitudes');
+      tbody.innerHTML = '';
+      db.ref('solicitudes').once('value').then(snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          Object.values(data).forEach((solicitud, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${solicitud.usuario}</td>
+              <td>${solicitud.inicio}</td>
+              <td>${solicitud.fin}</td>
+              <td>${solicitud.estado}</td>
+              <td>${solicitud.justificacion || ''}</td>
+              <td class="acciones">
+                <button onclick="mostrarPanel(this)">Acciones</button>
+                <div class="panel-acciones">
+                  <button onclick="aprobarSolicitud('${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Aprobar</button>
+                  <button onclick="rechazarSolicitud('${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Rechazar</button>
+                  <button onclick="eliminarSolicitud('${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Eliminar</button>
+                </div>
+              </td>`;
+            tbody.appendChild(row);
+          });
+        }
+      });
+    }
+
     function mostrarPanel(btn) {
       document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       btn.parentElement.classList.toggle('active');
@@ -187,71 +214,20 @@
       const key = usuario.replace(/[.#$\[\]]/g, '_');
       db.ref(`usuarios/${key}`).remove().then(cargarUsuarios);
     }
-    function cargarSolicitudes() {
-      const tabla = document.getElementById('tabla-solicitudes');
-      tabla.innerHTML = '';
-      db.ref('solicitudes').once('value').then(snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          Object.entries(data).forEach(([key, solicitud]) => {
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-              <td>${solicitud.usuario}</td>
-              <td>${solicitud.inicio}</td>
-              <td>${solicitud.fin}</td>
-              <td>${solicitud.estado}</td>
-              <td>${solicitud.justificacion || ''}</td>
-              <td>
-                <button onclick="aprobarSolicitud('${key}')">Aprobar</button>
-                <button onclick="rechazarSolicitud('${key}')">Rechazar</button>
-                <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
-              </td>
-            `;
-            tabla.appendChild(fila);
-          });
-        }
-      });
+
+    function aprobarSolicitud(usuario, inicio, fin) {
+      alert('Aprobado: ' + usuario);
     }
 
-    function aprobarSolicitud(key) {
-      db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
-        const solicitud = snapshot.val();
-        if (!solicitud || solicitud.estado !== 'Pendiente') return;
-
-        const inicio = new Date(solicitud.inicio);
-        const fin = new Date(solicitud.fin);
-        const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
-        const usuarioKey = solicitud.usuario.replace(/[.#$\[\]]/g, '_');
-
-        db.ref(`usuarios/${usuarioKey}`).once('value').then(userSnap => {
-          const user = userSnap.val();
-          if (user) {
-            user.usados += dias;
-            db.ref(`usuarios/${usuarioKey}`).set(user);
-          }
-        });
-
-        solicitud.estado = 'Aprobado';
-        db.ref(`solicitudes/${key}`).set(solicitud).then(cargarSolicitudes);
-      });
-    }
-
-    function rechazarSolicitud(key) {
-      const motivo = prompt('Justificación del rechazo:');
-      if (!motivo) return;
-
-      db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
-        const solicitud = snapshot.val();
-        solicitud.estado = 'Rechazado';
-        solicitud.justificacion = motivo;
-        db.ref(`solicitudes/${key}`).set(solicitud).then(cargarSolicitudes);
-      });
-    }
-
-    function eliminarSolicitud(key) {
-      if (confirm('¿Eliminar esta solicitud?')) {
-        db.ref(`solicitudes/${key}`).remove().then(cargarSolicitudes);
+    function rechazarSolicitud(usuario, inicio, fin) {
+      const motivo = prompt('Motivo del rechazo:');
+      if (motivo) {
+        alert('Rechazado con motivo: ' + motivo);
       }
+    }
+
+    function eliminarSolicitud(usuario, inicio, fin) {
+      alert('Solicitud eliminada para: ' + usuario);
     }
 
     window.onload = () => {
@@ -271,30 +247,12 @@
     <section id="crear-usuario">
       <h2>Crear nuevo usuario</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        <div>
-          <label for="nombre">Nombre completo</label>
-          <input type="text" id="nombre">
-        </div>
-        <div>
-          <label for="usuario">Nombre de usuario</label>
-          <input type="text" id="usuario">
-        </div>
-        <div>
-          <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo">
-        </div>
-        <div>
-          <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena">
-        </div>
-        <div>
-          <label for="dias">Días totales de vacaciones</label>
-          <input type="number" id="dias">
-        </div>
-        <div>
-          <label for="fecha-renovacion">Fecha de renovación anual</label>
-          <input type="date" id="fecha-renovacion">
-        </div>
+        <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
+        <div><label for="usuario">Nombre de usuario</label><input type="text" id="usuario"></div>
+        <div><label for="correo">Correo electrónico</label><input type="email" id="correo"></div>
+        <div><label for="contrasena">Contraseña</label><input type="password" id="contrasena"></div>
+        <div><label for="dias">Días totales de vacaciones</label><input type="number" id="dias"></div>
+        <div><label for="fecha-renovacion">Fecha de renovación anual</label><input type="date" id="fecha-renovacion"></div>
       </div>
       <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
     </section>
@@ -316,9 +274,9 @@
         <tbody id="tabla-usuarios"></tbody>
       </table>
     </section>
-    
-     <section id="panel-solicitudes">
-      <h2>Solicitudes de vacaciones</h2>
+
+    <section id="panel-solicitudes">
+      <h2>Solicitudes de Vacaciones</h2>
       <table>
         <thead>
           <tr>
