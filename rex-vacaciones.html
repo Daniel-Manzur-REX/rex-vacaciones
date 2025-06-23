@@ -93,6 +93,12 @@
   </style>
 </head>
 <body>
+  <script>
+    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+    if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
+      window.location.href = 'login.html';
+    }
+  </script>
   <header>
     <h1>Panel de Administrador – REX Vacaciones</h1>
     <div class="logout">
@@ -215,10 +221,7 @@ db.ref('solicitudes').once('value').then(snapshot => {
 
     function guardarSolicitudes() {
   const solicitudesObj = {};
-  solicitudes.forEach((s, i) => {
-    solicitudesObj[`solicitud_${i}`] = s;
-  });
-  db.ref('solicitudes').set(solicitudesObj);
+  
 };
   solicitudes.forEach((s, i) => {
     solicitudesObj[`solicitud_${i}`] = s;
@@ -388,9 +391,7 @@ db.ref('solicitudes').once('value').then(snapshot => {
       }
     });
 
-    renderUsuarios();
-    renderSolicitudes();
+    
   </script>
 </body>
 </html>
-
