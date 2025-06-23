@@ -156,9 +156,11 @@
 
       const diasSolicitados = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
       const diasRestantes = usuario.dias - usuario.usados;
+      const diasPendientes = solicitudes.filter(s => s.usuario === usuario.usuario && s.estado === 'Pendiente')
+                                        .reduce((acum, s) => acum + (Math.ceil((new Date(s.fin) - new Date(s.inicio)) / (1000 * 60 * 60 * 24)) + 1), 0);
 
-      if (diasSolicitados > diasRestantes) {
-        mostrarError(`No puedes solicitar más de ${diasRestantes} día(s) de vacaciones.`);
+      if (diasSolicitados + diasPendientes > diasRestantes) {
+        mostrarError(`Ya tienes ${diasPendientes} día(s) en solicitudes pendientes. No puedes solicitar ${diasSolicitados} más.`);
         return;
       }
 
