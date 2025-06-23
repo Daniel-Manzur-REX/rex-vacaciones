@@ -67,6 +67,12 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
+    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+    if (!sesion || !sesion.usuario) {
+      window.location.href = 'login.html';
+    }
+  </script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
       authDomain: "rex-vacaciones.firebaseapp.com",
@@ -145,6 +151,14 @@
 
       if (isNaN(inicio) || isNaN(fin) || inicio > fin || diferencia < 7) {
         mostrarError('Las fechas deben solicitarse con al menos 7 días de anticipación.');
+        return;
+      }
+
+      const diasSolicitados = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+      const diasRestantes = usuario.dias - usuario.usados;
+
+      if (diasSolicitados > diasRestantes) {
+        mostrarError(`No puedes solicitar más de ${diasRestantes} día(s) de vacaciones.`);
         return;
       }
 
