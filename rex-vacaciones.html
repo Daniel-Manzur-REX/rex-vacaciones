@@ -7,76 +7,165 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f9f9f9;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
     }
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #0A4E68;
+      background: #1a4d2e;
       color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
     }
-    h1, h2 {
-      margin: 0;
+    .logout {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
     }
     .logout button {
-      padding: 5px 10px;
-      background-color: #ffffff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      background-color: #b00020;
+      padding: 0.3rem 0.75rem;
+      border: none;
+      color: white;
       cursor: pointer;
+      font-size: 0.9rem;
+      border-radius: 4px;
     }
     main {
-      margin-top: 20px;
+      max-width: 1000px;
+      margin: auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    section {
-      background-color: white;
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 20px;
+    h2 {
+      color: #1a4d2e;
+      margin-top: 2rem;
+    }
+    label, input, button, select, textarea {
+      display: block;
+      width: 100%;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #1a4d2e;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      background-color: white;
+      margin-top: 2rem;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 8px 10px;
+      padding: 0.75rem;
       text-align: left;
     }
     th {
-      background-color: #e0e0e0;
+      background-color: #e8f5e9;
     }
-    button {
-      padding: 6px 12px;
-      margin-top: 10px;
-      background-color: #0A4E68;
-      color: white;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #066489;
+    .acciones {
+      position: relative;
     }
     .panel {
       display: none;
-      margin-top: 10px;
-      flex-direction: column;
-      gap: 8px;
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      z-index: 10;
+      width: 250px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     .acciones.active .panel {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      display: block;
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1>Panel de Administrador – REX Vacaciones</h1>
+    <div class="logout">
+      <button onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Crear nuevo usuario</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre">
+        </div>
+        <div>
+          <label for="usuario">Nombre de usuario</label>
+          <input type="text" id="usuario">
+        </div>
+        <div>
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo">
+        </div>
+        <div>
+          <label for="contrasena">Contraseña</label>
+          <input type="password" id="contrasena">
+        </div>
+        <div>
+          <label for="dias">Días totales de vacaciones</label>
+          <input type="number" id="dias">
+        </div>
+        <div>
+          <label for="fecha-renovacion">Fecha de renovación anual</label>
+          <input type="date" id="fecha-renovacion">
+        </div>
+      </div>
+      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
+    </section>
+
+    <section>
+      <h2>Lista de usuarios</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Usuario</th>
+            <th>Días totales</th>
+            <th>Usados</th>
+            <th>Renovación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-usuarios"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Solicitudes de vacaciones</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Justificación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-solicitudes"></tbody>
+      </table>
+    </section>
+  </main>
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
