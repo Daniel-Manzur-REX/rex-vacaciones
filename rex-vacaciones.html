@@ -94,10 +94,12 @@
 </head>
 <body>
   <script>
-    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
-    if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
-      window.location.href = 'login.html';
-    }
+    window.addEventListener('DOMContentLoaded', () => {
+  const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+  if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
+    window.location.href = 'login.html';
+  }
+});
   </script>
   <header>
     <h1>Panel de Administrador – REX Vacaciones</h1>
