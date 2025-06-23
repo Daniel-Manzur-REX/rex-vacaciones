@@ -112,6 +112,30 @@
       window.location.href = 'login.html';
     }
 
+    function crearUsuario() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const usuario = document.getElementById('usuario').value.trim();
+      const correo = document.getElementById('correo').value.trim();
+      const contrasena = document.getElementById('contrasena').value.trim();
+      const dias = parseInt(document.getElementById('dias').value);
+      const renovacion = document.getElementById('fecha-renovacion').value;
+
+      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
+        alert('Por favor complete todos los campos correctamente.');
+        return;
+      }
+
+      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+      db.ref('usuarios/' + usuario.replace(/[.#$\[\]]/g, '_')).set(nuevoUsuario, error => {
+        if (error) {
+          alert('Error al guardar el usuario.');
+        } else {
+          alert('Usuario creado exitosamente.');
+          cargarUsuarios();
+        }
+      });
+    }
+
     function cargarUsuarios() {
       const tabla = document.getElementById('tabla-usuarios');
       tabla.innerHTML = '';
