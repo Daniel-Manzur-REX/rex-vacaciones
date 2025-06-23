@@ -107,18 +107,33 @@
       error.style.display = 'none';
     }
 
+    function eliminarSolicitud(index) {
+      if (!confirm('¿Seguro que deseas eliminar esta solicitud?')) return;
+      solicitudes.splice(index, 1);
+      const solicitudesObj = {};
+      solicitudes.forEach((s, i) => {
+        solicitudesObj[`solicitud_${i}`] = s;
+      });
+      db.ref('solicitudes').set(solicitudesObj).then(() => {
+        mostrarSolicitudes();
+      });
+    }
+
     function mostrarSolicitudes() {
       const tbody = document.getElementById('tablaSolicitudes');
       tbody.innerHTML = '';
-      solicitudes.filter(s => s.usuario === usuario.usuario).forEach(s => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${s.inicio}</td>
-          <td>${s.fin}</td>
-          <td>${s.estado}</td>
-          <td>${s.justificacion || ''}</td>
-        `;
-        tbody.appendChild(row);
+      solicitudes.forEach((s, i) => {
+        if (s.usuario === usuario.usuario) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${s.inicio}</td>
+            <td>${s.fin}</td>
+            <td>${s.estado}</td>
+            <td>${s.justificacion || ''}</td>
+            <td>${s.estado === 'Pendiente' ? '<button onclick="eliminarSolicitud(' + i + ')">Eliminar</button>' : ''}</td>
+          `;
+          tbody.appendChild(row);
+        }
       });
     }
 
@@ -277,6 +292,7 @@
           <th>Fin</th>
           <th>Estado</th>
           <th>Justificación</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="tablaSolicitudes"></tbody>
