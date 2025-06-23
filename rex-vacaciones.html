@@ -156,12 +156,12 @@
                 <button type="button" onclick="mostrarPanel(this)">Editar</button>
                 <div class="panel-acciones">
                   <label>Días totales</label>
-                  <input type="number" value="${usuario.dias}" onchange="actualizarCampo('${usuario.usuario}', 'dias', this.value)">
+                  <input type="number" value="${usuario.dias}" id="dias-${usuario.usuario}">
                   <label>Días usados</label>
-                  <input type="number" value="${usuario.usados}" onchange="actualizarCampo('${usuario.usuario}', 'usados', this.value)">
+                  <input type="number" value="${usuario.usados}" id="usados-${usuario.usuario}">
                   <label>Renovación</label>
-                  <input type="date" value="${usuario.renovacion}" onchange="actualizarCampo('${usuario.usuario}', 'renovacion', this.value)">
-                  <button onclick="actualizarUsuario('${usuario.usuario}')">Guardar</button>
+                  <input type="date" value="${usuario.renovacion}" id="renovacion-${usuario.usuario}">
+                  <button onclick="guardarCambios('${usuario.usuario}')">Guardar</button>
                   <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
                 </div>
               </td>
@@ -172,21 +172,12 @@
       });
     }
 
-    function actualizarUsuario(usuario) {
+    function guardarCambios(usuario) {
       const key = usuario.replace(/[.#$\[\]]/g, '_');
-      const panel = document.querySelector(`button[onclick*="${usuario}"].parentElement .panel-acciones`);
-      const inputs = panel.querySelectorAll('input');
-      const datos = {
-        dias: parseInt(inputs[0].value),
-        usados: parseInt(inputs[1].value),
-        renovacion: inputs[2].value
-      };
-      db.ref('usuarios/' + key).update(datos).then(() => cargarUsuarios());
-    }
-
-    function actualizarCampo(usuario, campo, valor) {
-      const key = usuario.replace(/[.#$\[\]]/g, '_');
-      db.ref(`usuarios/${key}/${campo}`).set(campo === 'dias' || campo === 'usados' ? parseInt(valor) : valor);
+      const dias = parseInt(document.getElementById(`dias-${usuario}`).value);
+      const usados = parseInt(document.getElementById(`usados-${usuario}`).value);
+      const renovacion = document.getElementById(`renovacion-${usuario}`).value;
+      db.ref('usuarios/' + key).update({ dias, usados, renovacion }).then(() => cargarUsuarios());
     }
 
     function eliminarUsuario(usuario) {
