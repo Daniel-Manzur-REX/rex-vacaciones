@@ -107,6 +107,24 @@
           error.textContent = 'Credenciales incorrectas';
         }
       });
+    }));
+        window.location.href = 'rex-vacaciones.html';
+        return;
+      }
+
+      db.ref('usuarios').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const usuarios = data ? Object.values(data) : [];
+        const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
+
+        if (encontrado) {
+          alert(`Bienvenido ${encontrado.nombre}`);
+          localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
+          window.location.href = 'usuario.html';
+        } else {
+          error.textContent = 'Credenciales incorrectas';
+        }
+      });
       } else {
         error.textContent = 'Credenciales incorrectas';
       }
