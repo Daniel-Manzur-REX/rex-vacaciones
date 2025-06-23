@@ -161,7 +161,8 @@
                   <input type="number" value="${usuario.usados}" onchange="actualizarCampo('${usuario.usuario}', 'usados', this.value)">
                   <label>Renovación</label>
                   <input type="date" value="${usuario.renovacion}" onchange="actualizarCampo('${usuario.usuario}', 'renovacion', this.value)">
-                  <button type="button" onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+                  <button onclick="actualizarUsuario('${usuario.usuario}')">Guardar</button>
+                  <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
                 </div>
               </td>
             `;
@@ -169,6 +170,29 @@
           });
         }
       });
+    }
+
+    function actualizarUsuario(usuario) {
+      const key = usuario.replace(/[.#$\[\]]/g, '_');
+      const panel = document.querySelector(`button[onclick*="${usuario}"].parentElement .panel-acciones`);
+      const inputs = panel.querySelectorAll('input');
+      const datos = {
+        dias: parseInt(inputs[0].value),
+        usados: parseInt(inputs[1].value),
+        renovacion: inputs[2].value
+      };
+      db.ref('usuarios/' + key).update(datos).then(() => cargarUsuarios());
+    }
+
+    function actualizarCampo(usuario, campo, valor) {
+      const key = usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref(`usuarios/${key}/${campo}`).set(campo === 'dias' || campo === 'usados' ? parseInt(valor) : valor);
+    }
+
+    function eliminarUsuario(usuario) {
+      if (!confirm('¿Eliminar este usuario?')) return;
+      const key = usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref(`usuarios/${key}`).remove().then(cargarUsuarios);
     }
 
     function cargarSolicitudes() {
@@ -204,16 +228,11 @@
       btn.parentElement.classList.toggle('active');
     }
 
-    function actualizarCampo(usuario, campo, valor) {
-      const key = usuario.replace(/[.#$\[\]]/g, '_');
-      db.ref(`usuarios/${key}/${campo}`).set(campo === 'dias' || campo === 'usados' ? parseInt(valor) : valor);
-    }
-
-    function eliminarUsuario(usuario) {
-      if (!confirm('¿Eliminar este usuario?')) return;
-      const key = usuario.replace(/[.#$\[\]]/g, '_');
-      db.ref(`usuarios/${key}`).remove().then(cargarUsuarios);
-    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.acciones')) {
+        document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+      }
+    });
 
     function aprobarSolicitud(usuario, inicio, fin) {
       alert('Aprobado: ' + usuario);
