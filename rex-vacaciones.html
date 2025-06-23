@@ -116,50 +116,19 @@
   </header>
   <main>
     <section>
-      <h2>Crear nuevo usuario</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        <div>
-          <label for="nombre">Nombre completo</label>
-          <input type="text" id="nombre">
-        </div>
-        <div>
-          <label for="usuario">Nombre de usuario</label>
-          <input type="text" id="usuario">
-        </div>
-        <div>
-          <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo">
-        </div>
-        <div>
-          <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena">
-        </div>
-        <div>
-          <label for="dias">Días totales de vacaciones</label>
-          <input type="number" id="dias">
-        </div>
-        <div>
-          <label for="fecha-renovacion">Fecha de renovación anual</label>
-          <input type="date" id="fecha-renovacion">
-        </div>
-      </div>
-      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
-    </section>
-    <section>
-      <h2>Lista de usuarios</h2>
+      <h2>Solicitudes de vacaciones</h2>
       <table>
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
             <th>Usuario</th>
-            <th>Días totales</th>
-            <th>Usados</th>
-            <th>Renovación</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Justificación</th>
             <th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="tabla-usuarios"></tbody>
+        <tbody id="tabla-solicitudes"></tbody>
       </table>
     </section>
   </main>
@@ -171,7 +140,7 @@
       if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== '30051992') {
         window.location.href = 'login.html';
       } else {
-        cargarUsuarios();
+        cargarSolicitudes();
       }
     });
 
@@ -180,74 +149,35 @@
       window.location.href = 'login.html';
     }
 
-    function crearUsuario() {
-      const nombre = document.getElementById('nombre').value.trim();
-      const usuario = document.getElementById('usuario').value.trim();
-      const correo = document.getElementById('correo').value.trim();
-      const contrasena = document.getElementById('contrasena').value;
-      const dias = parseInt(document.getElementById('dias').value);
-      const renovacion = document.getElementById('fecha-renovacion').value;
-
-      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
-        alert('Todos los campos son obligatorios');
-        return;
-      }
-
-      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
-      const claveSegura = usuario.replace(/[.#$\[\]]/g, '_');
-      db.ref('usuarios/' + claveSegura).set(nuevoUsuario).then(() => {
-        alert('Usuario creado correctamente');
-        cargarUsuarios();
-      });
-    }
-
-    function cargarUsuarios() {
-      db.ref('usuarios').once('value').then(snapshot => {
+    function cargarSolicitudes() {
+      db.ref('solicitudes').once('value').then(snapshot => {
         const data = snapshot.val();
-        const usuarios = data ? Object.values(data) : [];
-        renderUsuarios(usuarios);
+        const solicitudes = data ? Object.values(data) : [];
+        renderSolicitudes(solicitudes);
       });
     }
 
-    function renderUsuarios(usuarios) {
-      const tbody = document.getElementById('tabla-usuarios');
+    function renderSolicitudes(solicitudes) {
+      const tbody = document.getElementById('tabla-solicitudes');
       tbody.innerHTML = '';
-      usuarios.forEach((usuario, index) => {
+      solicitudes.forEach((solicitud, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${usuario.nombre}</td>
-          <td>${usuario.correo}</td>
-          <td>${usuario.usuario}</td>
-          <td>${usuario.dias}</td>
-          <td>${usuario.usados}</td>
-          <td>${usuario.renovacion}</td>
+          <td>${solicitud.usuario}</td>
+          <td>${solicitud.inicio}</td>
+          <td>${solicitud.fin}</td>
+          <td>${solicitud.estado}</td>
+          <td>${solicitud.justificacion || ''}</td>
           <td class="acciones">
-            <button onclick="togglePanel(event, ${index})">Editar</button>
+            <button onclick="togglePanel(event, ${index})">Acciones</button>
             <div class="panel">
-              <label>Días totales</label>
-              <input type="number" value="${usuario.dias}" onchange="actualizarUsuario('${usuario.usuario}', 'dias', this.value)">
-              <label>Días usados</label>
-              <input type="number" value="${usuario.usados}" onchange="actualizarUsuario('${usuario.usuario}', 'usados', this.value)">
-              <label>Renovación</label>
-              <input type="date" value="${usuario.renovacion}" onchange="actualizarUsuario('${usuario.usuario}', 'renovacion', this.value)">
-              <button onclick="cargarUsuarios()">Guardar</button>
-              <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+              <button onclick="aprobar(${index})">Aprobar</button>
+              <button onclick="rechazar(${index})">Rechazar</button>
+              <button onclick="eliminar(${index})">Eliminar</button>
             </div>
           </td>`;
         tbody.appendChild(row);
       });
-    }
-
-    function actualizarUsuario(usuarioId, campo, valor) {
-      const claveSegura = usuarioId.replace(/[.#$\[\]]/g, '_');
-      db.ref('usuarios/' + claveSegura + '/' + campo).set(valor);
-    }
-
-    function eliminarUsuario(usuarioId) {
-      if (confirm('¿Seguro que deseas eliminar este usuario?')) {
-        const claveSegura = usuarioId.replace(/[.#$\[\]]/g, '_');
-        db.ref('usuarios/' + claveSegura).remove().then(() => cargarUsuarios());
-      }
     }
 
     function togglePanel(e, id) {
@@ -260,6 +190,45 @@
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
+
+    function aprobar(index) {
+      db.ref('solicitudes').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const keys = Object.keys(data);
+        const key = keys[index];
+        const solicitud = data[key];
+        if (solicitud.estado === 'Pendiente') {
+          solicitud.estado = 'Aprobado';
+          db.ref('solicitudes/' + key).set(solicitud).then(() => cargarSolicitudes());
+        }
+      });
+    }
+
+    function rechazar(index) {
+      const motivo = prompt('Justificación del rechazo:');
+      if (!motivo) return;
+      db.ref('solicitudes').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const keys = Object.keys(data);
+        const key = keys[index];
+        const solicitud = data[key];
+        if (solicitud.estado === 'Pendiente') {
+          solicitud.estado = 'Rechazado';
+          solicitud.justificacion = motivo;
+          db.ref('solicitudes/' + key).set(solicitud).then(() => cargarSolicitudes());
+        }
+      });
+    }
+
+    function eliminar(index) {
+      if (!confirm('¿Eliminar esta solicitud?')) return;
+      db.ref('solicitudes').once('value').then(snapshot => {
+        const data = snapshot.val();
+        const keys = Object.keys(data);
+        const key = keys[index];
+        db.ref('solicitudes/' + key).remove().then(() => cargarSolicitudes());
+      });
+    }
   </script>
 </body>
 </html>
