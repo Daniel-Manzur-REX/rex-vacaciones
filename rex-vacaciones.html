@@ -232,7 +232,18 @@
     });
 
     function aprobarSolicitud(key, usuario, inicio, fin) {
-      db.ref(`solicitudes/${key}`).update({ estado: 'Aprobado', justificacion: '' }).then(cargarSolicitudes);
+      const usuarioKey = usuario.replace(/[.#$\[\]]/g, '_');
+      const dias = Math.ceil((new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24)) + 1;
+
+      db.ref(`solicitudes/${key}`).update({ estado: 'Aprobado', justificacion: '' });
+
+      db.ref(`usuarios/${usuarioKey}/usados`).once('value').then(snapshot => {
+        const usadosActuales = snapshot.val() || 0;
+        db.ref(`usuarios/${usuarioKey}`).update({ usados: usadosActuales + dias }).then(() => {
+          cargarUsuarios();
+          cargarSolicitudes();
+        });
+      });
     }
 
     function rechazarSolicitud(key, usuario, inicio, fin) {
