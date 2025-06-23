@@ -153,7 +153,7 @@
               <td>${usuario.usados}</td>
               <td>${usuario.renovacion}</td>
               <td class="acciones">
-                <button onclick="mostrarPanel(this)">Editar</button>
+                <button type="button" onclick="mostrarPanel(this)">Editar</button>
                 <div class="panel-acciones">
                   <label>Días totales</label>
                   <input type="number" value="${usuario.dias}" onchange="actualizarCampo('${usuario.usuario}', 'dias', this.value)">
@@ -161,7 +161,7 @@
                   <input type="number" value="${usuario.usados}" onchange="actualizarCampo('${usuario.usuario}', 'usados', this.value)">
                   <label>Renovación</label>
                   <input type="date" value="${usuario.renovacion}" onchange="actualizarCampo('${usuario.usuario}', 'renovacion', this.value)">
-                  <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+                  <button type="button" onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
                 </div>
               </td>
             `;
