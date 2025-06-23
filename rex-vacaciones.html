@@ -147,7 +147,8 @@
     }
 
     function editarUsuario(usuarioKey) {
-      const userRef = db.ref('usuarios/' + usuarioKey.replace(/[.#$\[\]]/g, '_'));
+      const key = usuarioKey.replace(/[.#$\[\]]/g, '_');
+      const userRef = db.ref('usuarios/' + key);
       userRef.once('value').then(snapshot => {
         const user = snapshot.val();
         if (user) {
@@ -158,7 +159,7 @@
             user.dias = parseInt(nuevoDias);
             user.usados = parseInt(nuevoUsados);
             user.renovacion = nuevaFecha;
-            userRef.set(user).then(cargarUsuarios);
+            userRef.set(user).then(() => cargarUsuarios());
           }
         }
       });
