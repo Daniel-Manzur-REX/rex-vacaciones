@@ -173,7 +173,7 @@
     function aprobarSolicitud(key) {
       db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
         const solicitud = snapshot.val();
-        if (solicitud.estado !== 'Pendiente') return;
+        if (!solicitud || solicitud.estado !== 'Pendiente') return;
 
         const inicio = new Date(solicitud.inicio);
         const fin = new Date(solicitud.fin);
