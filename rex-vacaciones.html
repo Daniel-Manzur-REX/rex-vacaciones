@@ -242,7 +242,12 @@
       usuarios.push(nuevoUsuario);
       guardarUsuarios();
       renderUsuarios();
-      document.querySelectorAll('input').forEach(i => i.value = '');
+      document.getElementById('nombre').value = '';
+document.getElementById('usuario').value = '';
+document.getElementById('correo').value = '';
+document.getElementById('contrasena').value = '';
+document.getElementById('dias').value = '';
+document.getElementById('fecha-renovacion').value = '';
     }
 
     function renderUsuarios() {
