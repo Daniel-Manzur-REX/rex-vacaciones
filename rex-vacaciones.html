@@ -136,10 +136,30 @@
               <td>${usuario.dias}</td>
               <td>${usuario.usados}</td>
               <td>${usuario.renovacion}</td>
-              <td><button>Editar</button></td>
+              <td>
+                <button onclick="editarUsuario('${usuario.usuario}')">Editar</button>
+              </td>
             `;
             tabla.appendChild(row);
           });
+        }
+      });
+    }
+
+    function editarUsuario(usuarioKey) {
+      const userRef = db.ref('usuarios/' + usuarioKey.replace(/[.#$\[\]]/g, '_'));
+      userRef.once('value').then(snapshot => {
+        const user = snapshot.val();
+        if (user) {
+          const nuevoDias = prompt('Días totales:', user.dias);
+          const nuevoUsados = prompt('Días usados:', user.usados);
+          const nuevaFecha = prompt('Fecha de renovación (YYYY-MM-DD):', user.renovacion);
+          if (nuevoDias !== null && nuevoUsados !== null && nuevaFecha !== null) {
+            user.dias = parseInt(nuevoDias);
+            user.usados = parseInt(nuevoUsados);
+            user.renovacion = nuevaFecha;
+            userRef.set(user).then(cargarUsuarios);
+          }
         }
       });
     }
