@@ -74,6 +74,22 @@
     th {
       background-color: #e8f5e9;
     }
+    .acciones {
+      position: relative;
+    }
+    .panel-acciones {
+      display: none;
+      position: absolute;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      z-index: 10;
+      width: 250px;
+    }
+    .acciones.active .panel-acciones {
+      display: block;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -136,8 +152,17 @@
               <td>${usuario.dias}</td>
               <td>${usuario.usados}</td>
               <td>${usuario.renovacion}</td>
-              <td>
-                <button onclick="editarUsuario('${usuario.usuario}')">Editar</button>
+              <td class="acciones">
+                <button onclick="mostrarPanel(this)">Editar</button>
+                <div class="panel-acciones">
+                  <label>Días totales</label>
+                  <input type="number" value="${usuario.dias}" onchange="actualizarCampo('${usuario.usuario}', 'dias', this.value)">
+                  <label>Días usados</label>
+                  <input type="number" value="${usuario.usados}" onchange="actualizarCampo('${usuario.usuario}', 'usados', this.value)">
+                  <label>Renovación</label>
+                  <input type="date" value="${usuario.renovacion}" onchange="actualizarCampo('${usuario.usuario}', 'renovacion', this.value)">
+                  <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+                </div>
               </td>
             `;
             tabla.appendChild(row);
@@ -146,95 +171,24 @@
       });
     }
 
-    function editarUsuario(usuarioKey) {
-      const key = usuarioKey.replace(/[.#$\[\]]/g, '_');
-      const userRef = db.ref('usuarios/' + key);
-      userRef.once('value').then(snapshot => {
-        const user = snapshot.val();
-        if (user) {
-          const nuevoDias = prompt('Días totales:', user.dias);
-          const nuevoUsados = prompt('Días usados:', user.usados);
-          const nuevaFecha = prompt('Fecha de renovación (YYYY-MM-DD):', user.renovacion);
-          if (nuevoDias !== null && nuevoUsados !== null && nuevaFecha !== null) {
-            user.dias = parseInt(nuevoDias);
-            user.usados = parseInt(nuevoUsados);
-            user.renovacion = nuevaFecha;
-            userRef.set(user).then(() => cargarUsuarios());
-          }
-        }
-      });
+    function mostrarPanel(btn) {
+      document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
+      btn.parentElement.classList.toggle('active');
     }
 
-    function cargarSolicitudes() {
-      const tabla = document.getElementById('tabla-solicitudes');
-      tabla.innerHTML = '';
-      db.ref('solicitudes').once('value').then(snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          Object.entries(data).forEach(([key, solicitud]) => {
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-              <td>${solicitud.usuario}</td>
-              <td>${solicitud.inicio}</td>
-              <td>${solicitud.fin}</td>
-              <td>${solicitud.estado}</td>
-              <td>${solicitud.justificacion || ''}</td>
-              <td>
-                <button onclick="aprobarSolicitud('${key}')">Aprobar</button>
-                <button onclick="rechazarSolicitud('${key}')">Rechazar</button>
-                <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
-              </td>
-            `;
-            tabla.appendChild(fila);
-          });
-        }
-      });
+    function actualizarCampo(usuario, campo, valor) {
+      const key = usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref(`usuarios/${key}/${campo}`).set(campo === 'dias' || campo === 'usados' ? parseInt(valor) : valor);
     }
 
-    function aprobarSolicitud(key) {
-      db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
-        const solicitud = snapshot.val();
-        if (!solicitud || solicitud.estado !== 'Pendiente') return;
-
-        const inicio = new Date(solicitud.inicio);
-        const fin = new Date(solicitud.fin);
-        const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
-        const usuarioKey = solicitud.usuario.replace(/[.#$\[\]]/g, '_');
-
-        db.ref(`usuarios/${usuarioKey}`).once('value').then(userSnap => {
-          const user = userSnap.val();
-          if (user) {
-            user.usados += dias;
-            db.ref(`usuarios/${usuarioKey}`).set(user);
-          }
-        });
-
-        solicitud.estado = 'Aprobado';
-        db.ref(`solicitudes/${key}`).set(solicitud).then(cargarSolicitudes);
-      });
-    }
-
-    function rechazarSolicitud(key) {
-      const motivo = prompt('Justificación del rechazo:');
-      if (!motivo) return;
-
-      db.ref(`solicitudes/${key}`).once('value').then(snapshot => {
-        const solicitud = snapshot.val();
-        solicitud.estado = 'Rechazado';
-        solicitud.justificacion = motivo;
-        db.ref(`solicitudes/${key}`).set(solicitud).then(cargarSolicitudes);
-      });
-    }
-
-    function eliminarSolicitud(key) {
-      if (confirm('¿Eliminar esta solicitud?')) {
-        db.ref(`solicitudes/${key}`).remove().then(cargarSolicitudes);
-      }
+    function eliminarUsuario(usuario) {
+      if (!confirm('¿Eliminar este usuario?')) return;
+      const key = usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref(`usuarios/${key}`).remove().then(cargarUsuarios);
     }
 
     window.onload = () => {
       cargarUsuarios();
-      cargarSolicitudes();
     };
   </script>
 </head>
@@ -292,23 +246,6 @@
           </tr>
         </thead>
         <tbody id="tabla-usuarios"></tbody>
-      </table>
-    </section>
-
-    <section id="panel-solicitudes">
-      <h2>Solicitudes de vacaciones</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Usuario</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Estado</th>
-            <th>Justificación</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-solicitudes"></tbody>
       </table>
     </section>
   </main>
