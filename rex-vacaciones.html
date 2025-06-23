@@ -212,21 +212,15 @@ const db = firebase.database();
       window.location.href = 'login.html';
     }
 
-    $1
+    
 
     function guardarSolicitudes() {
-      const solicitudesObj = {};
-      solicitudes.forEach((s, i) => {
-        solicitudesObj[`solicitud_${i}`] = s;
-      });
-      db.ref('solicitudes').set(solicitudesObj);
-    }
-
-    
-      
-
-      
-    }
+  const solicitudesObj = {};
+  solicitudes.forEach((s, i) => {
+    solicitudesObj[`solicitud_${i}`] = s;
+  });
+  db.ref('solicitudes').set(solicitudesObj);
+}
 
     function renderUsuarios() {
       const tbody = document.getElementById('tabla-usuarios');
