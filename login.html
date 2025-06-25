@@ -62,37 +62,32 @@
 
     function loginConGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithRedirect(provider);
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        const email = user.email;
-
-        if (!email.endsWith('@reforestacionextrema.org')) {
-          alert('Solo se permiten correos del dominio @reforestacionextrema.org');
-          auth.signOut();
-          return;
-        }
-
-        const usuarioKey = email.split('@')[0].replace(/[.#$\[\]]/g, '_');
-        db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
-          if (snapshot.exists()) {
-            const usuarioData = snapshot.val();
-            localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
-            window.location.href = 'usuario.html';
-          } else {
-            alert('Tu correo es válido, pero aún no estás registrado en el sistema.');
+      firebase.auth().signInWithPopup(provider)
+        .then(result => {
+          const user = result.user;
+          if (!user.email.endsWith('@reforestacionextrema.org')) {
+            alert('Solo se permiten correos del dominio @reforestacionextrema.org');
             auth.signOut();
+            return;
           }
-        });
-      }
-    });
 
-    auth.getRedirectResult().catch(error => {
-      console.error(error);
-      document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
-    });
+          const usuarioKey = user.email.split('@')[0].replace(/[.#$\[\]]/g, '_');
+          db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
+            if (snapshot.exists()) {
+              const usuarioData = snapshot.val();
+              localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
+              window.location.href = 'usuario.html';
+            } else {
+              alert('Tu correo es válido, pero aún no estás registrado en el sistema.');
+              auth.signOut();
+            }
+          });
+        })
+        .catch(error => {
+          console.error(error);
+          document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
+        });
+    }
   </script>
 </head>
 <body>
