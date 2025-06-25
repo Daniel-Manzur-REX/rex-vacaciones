@@ -45,6 +45,13 @@
       color: #1a4d2e;
       margin-top: 2rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toggle-icon {
+      font-size: 1.2rem;
+      margin-left: 1rem;
     }
     label, input, button, select, textarea {
       display: block;
@@ -66,14 +73,6 @@
       width: auto;
       padding: 0.5rem 1.5rem;
       margin-top: 1rem;
-    }
-    .toggle-btn {
-      background: none;
-      border: none;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-left: 0.5rem;
-      color: #1a4d2e;
     }
     table {
       width: 100%;
@@ -110,7 +109,7 @@
       display: none;
     }
   </style>
-  <script>
+<script>
     const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
     if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== 'co360617') {
       window.location.href = 'login.html';
@@ -118,15 +117,22 @@
   </script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script>
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('section').forEach(section => {
         const header = section.querySelector('h2');
+        const icon = document.createElement('span');
+        icon.classList.add('toggle-icon');
+        icon.textContent = '▼';
+        header.appendChild(icon);
+
         const content = section.querySelector('.collapsible');
 
         header.addEventListener('click', () => {
           if (content) {
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            const isVisible = content.style.display !== 'none';
+            content.style.display = isVisible ? 'none' : 'block';
+            icon.textContent = isVisible ? '►' : '▼';
           }
         });
       });
@@ -312,10 +318,7 @@
 </header>
 <main>
   <section id="crear-usuario">
-    <h2>
-      Crear nuevo usuario
-  <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
-</h2>
+    <h2>Crear nuevo usuario</h2>
     <div class="collapsible" style="display: block;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
@@ -331,10 +334,7 @@
     </div>
   </section>
   <section id="panel-usuarios">
-    <h2>
-      Usuarios
-  <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
-</h2>
+    <h2>Usuarios</h2>
     <div class="collapsible" style="display: block;">
       <table>
         <thead>
@@ -353,10 +353,7 @@
     </div>
   </section>
   <section id="panel-solicitudes">
-    <h2>
-      Solicitudes de vacaciones
-  <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
-</h2>
+    <h2>Solicitudes de Vacaciones</h2>
     <div class="collapsible" style="display: block;">
       <table>
         <thead>
@@ -376,3 +373,4 @@
 </main>
 </body>
 </html>
+
