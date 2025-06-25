@@ -7,21 +7,26 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      background: linear-gradient(to right, #1a4d2e, #4caf50);
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
     .login-container {
       background: white;
       padding: 2rem;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
       width: 100%;
       max-width: 400px;
       text-align: center;
+    }
+    .login-container img {
+      max-width: 120px;
+      margin-bottom: 1rem;
     }
     h1 {
       color: #1a4d2e;
@@ -146,6 +151,7 @@
 </head>
 <body>
   <div class="login-container">
+    <img src="logo-reforestacion.png" alt="Logo RE">
     <h1>Portal de Vacaciones RE</h1>
     <form onsubmit="loginManual(event)">
       <input type="text" id="user" placeholder="Usuario">
@@ -155,7 +161,7 @@
     <p style="margin: 1rem 0;">o</p>
     <button class="google-button" onclick="loginConGoogle()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
-      Iniciar sesión con Google
+      Inicia sesión con Google
     </button>
     <p id="error" class="error"></p>
   </div>
