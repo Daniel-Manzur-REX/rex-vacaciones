@@ -65,35 +65,34 @@
       auth.signInWithRedirect(provider);
     }
 
-    auth.getRedirectResult()
-      .then(result => {
-        if (result.user) {
-          const user = result.user;
-          const email = user.email;
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const email = user.email;
 
-          if (!email.endsWith('@reforestacionextrema.org')) {
-            alert('Solo se permiten correos del dominio @reforestacionextrema.org');
-            auth.signOut();
-            return;
-          }
-
-          const usuarioKey = email.split('@')[0].replace(/[.#$\[\]]/g, '_');
-          db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
-            if (snapshot.exists()) {
-              const usuarioData = snapshot.val();
-              localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
-              window.location.href = 'usuario.html';
-            } else {
-              alert('Tu correo es válido, pero aún no estás registrado en el sistema.');
-              auth.signOut();
-            }
-          });
+        if (!email.endsWith('@reforestacionextrema.org')) {
+          alert('Solo se permiten correos del dominio @reforestacionextrema.org');
+          auth.signOut();
+          return;
         }
-      })
-      .catch(error => {
-        console.error(error);
-        document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
-      });
+
+        const usuarioKey = email.split('@')[0].replace(/[.#$\[\]]/g, '_');
+        db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            const usuarioData = snapshot.val();
+            localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
+            window.location.href = 'usuario.html';
+          } else {
+            alert('Tu correo es válido, pero aún no estás registrado en el sistema.');
+            auth.signOut();
+          }
+        });
+      }
+    });
+
+    auth.getRedirectResult().catch(error => {
+      console.error(error);
+      document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
+    });
   </script>
 </head>
 <body>
