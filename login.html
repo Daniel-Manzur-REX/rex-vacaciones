@@ -27,7 +27,7 @@
       color: #1a4d2e;
       margin-bottom: 2rem;
     }
-    button {
+    button, input {
       background-color: #1a4d2e;
       color: white;
       border: none;
@@ -35,6 +35,13 @@
       padding: 0.75rem 1rem;
       font-size: 1rem;
       border-radius: 5px;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    input {
+      background-color: white;
+      color: black;
+      border: 1px solid #ccc;
     }
     .error {
       color: red;
@@ -88,11 +95,44 @@
           document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
         });
     }
+
+    function loginManual(event) {
+      event.preventDefault();
+      const user = document.getElementById('user').value.trim();
+      const pass = document.getElementById('pass').value.trim();
+
+      if (user === 'admin' && pass === '30051992') {
+        localStorage.setItem('usuarioActivo', JSON.stringify({ usuario: 'admin', contrasena: '30051992' }));
+        window.location.href = 'rex-vacaciones.html';
+        return;
+      }
+
+      const userKey = user.replace(/[.#$\[\]]/g, '_');
+      db.ref('usuarios/' + userKey).once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          const usuarioData = snapshot.val();
+          if (usuarioData.contrasena === pass) {
+            localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
+            window.location.href = 'usuario.html';
+          } else {
+            document.getElementById('error').textContent = 'Contraseña incorrecta';
+          }
+        } else {
+          document.getElementById('error').textContent = 'Usuario no encontrado';
+        }
+      });
+    }
   </script>
 </head>
 <body>
   <div class="login-container">
     <h1>REX Vacaciones</h1>
+    <form onsubmit="loginManual(event)">
+      <input type="text" id="user" placeholder="Usuario">
+      <input type="password" id="pass" placeholder="Contraseña">
+      <button type="submit">Iniciar sesión</button>
+    </form>
+    <p style="margin: 1rem 0;">o</p>
     <button onclick="loginConGoogle()">Iniciar sesión con Google</button>
     <p id="error" class="error"></p>
   </div>
