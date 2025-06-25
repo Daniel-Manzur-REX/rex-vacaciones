@@ -67,6 +67,14 @@
       padding: 0.5rem 1.5rem;
       margin-top: 1rem;
     }
+    .toggle-btn {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      color: #1a4d2e;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -143,6 +151,13 @@
       window.location.href = 'login.html';
     }
 
+    function toggleSection(btn) {
+      const section = btn.closest('section');
+      const content = section.querySelector('.collapsible');
+      const visible = content.style.display !== 'none';
+      content.style.display = visible ? 'none' : 'block';
+      btn.textContent = visible ? '►' : '▼';
+    }
     function crearUsuario() {
       const nombre = document.getElementById('nombre').value.trim();
       const usuario = document.getElementById('usuario').value.trim();
@@ -297,7 +312,9 @@
 </header>
 <main>
   <section id="crear-usuario">
-    <h2>Crear nuevo usuario</h2>
+    <h2>Crear nuevo usuario
+  <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+</h2>
     <div class="collapsible" style="display: block;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
@@ -313,7 +330,9 @@
     </div>
   </section>
   <section id="panel-usuarios">
-    <h2>Usuarios</h2>
+    <h2>Usuarios
+  <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+</h2>
     <div class="collapsible" style="display: block;">
       <table>
         <thead>
@@ -332,7 +351,9 @@
     </div>
   </section>
   <section id="panel-solicitudes">
-    <h2>Solicitudes de Vacaciones</h2>
+    <h2>Solicitudes de vacaciones
+  <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+</h2>
     <div class="collapsible" style="display: block;">
       <table>
         <thead>
