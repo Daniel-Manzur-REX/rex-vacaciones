@@ -62,8 +62,12 @@
 
     function loginConGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(result => {
+      auth.signInWithRedirect(provider);
+    }
+
+    auth.getRedirectResult()
+      .then(result => {
+        if (result.user) {
           const user = result.user;
           const email = user.email;
 
@@ -84,12 +88,12 @@
               auth.signOut();
             }
           });
-        })
-        .catch(error => {
-          console.error(error);
-          document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
-        });
-    }
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
+      });
   </script>
 </head>
 <body>
