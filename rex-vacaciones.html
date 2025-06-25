@@ -44,6 +44,7 @@
     h2 {
       color: #1a4d2e;
       margin-top: 2rem;
+      cursor: pointer;
     }
     label, input, button, select, textarea {
       display: block;
@@ -96,6 +97,9 @@
     }
     .acciones.active .panel-acciones {
       display: block;
+    }
+    .collapsible {
+      display: none;
     }
   </style>
   <script>
@@ -277,9 +281,10 @@
     <button onclick="cerrarSesion()">Salir</button>
   </div>
 </header>
-  <main>
-    <section id="crear-usuario">
-      <h2>Crear nuevo usuario</h2>
+<main>
+  <section id="crear-usuario">
+    <h2>Crear nuevo usuario</h2>
+    <div class="collapsible" style="display: block;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div><label for="nombre">Nombre completo</label><input type="text" id="nombre"></div>
         <div><label for="usuario">Nombre de usuario</label><input type="text" id="usuario"></div>
@@ -291,10 +296,11 @@
       <div style="display: flex; justify-content: center;">
         <button class="btn-crear" onclick="crearUsuario()">Crear usuario</button>
       </div>
-    </section>
-
-    <section id="panel-usuarios">
-      <h2>Usuarios</h2>
+    </div>
+  </section>
+  <section id="panel-usuarios">
+    <h2>Usuarios</h2>
+    <div class="collapsible" style="display: block;">
       <table>
         <thead>
           <tr>
@@ -309,10 +315,11 @@
         </thead>
         <tbody id="tabla-usuarios"></tbody>
       </table>
-    </section>
-
-    <section id="panel-solicitudes">
-      <h2>Solicitudes de Vacaciones</h2>
+    </div>
+  </section>
+  <section id="panel-solicitudes">
+    <h2>Solicitudes de Vacaciones</h2>
+    <div class="collapsible" style="display: block;">
       <table>
         <thead>
           <tr>
@@ -326,7 +333,8 @@
         </thead>
         <tbody id="tabla-solicitudes"></tbody>
       </table>
-    </section>
-  </main>
+    </div>
+  </section>
+</main>
 </body>
 </html>
