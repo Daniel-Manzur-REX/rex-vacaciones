@@ -110,6 +110,20 @@
   </script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('section').forEach(section => {
+        const header = section.querySelector('h2');
+        const content = section.querySelector('.collapsible');
+
+        header.addEventListener('click', () => {
+          if (content) {
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+          }
+        });
+      });
+    });
+  </script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
