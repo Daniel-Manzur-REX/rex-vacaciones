@@ -61,7 +61,7 @@
       cursor: pointer;
       border-radius: 5px;
     }
-    btn-crear {
+    .btn-crear {
   width: auto;
   padding: 0.5rem 1.5rem;
   margin-top: 1rem;
@@ -274,7 +274,7 @@
 <header>
   <h1>Panel de Administrador</h1>
   <div class="logout">
-    <button class="btn-crear" onclick="crearUsuario()">Crear usuario</button>
+    <button onclick="cerrarSesion()">Salir</button>
   </div>
 </header>
   <main>
@@ -288,7 +288,7 @@
         <div><label for="dias">Días totales de vacaciones</label><input type="number" id="dias"></div>
         <div><label for="fecha-renovacion">Fecha de renovación anual</label><input type="date" id="fecha-renovacion"></div>
       </div>
-      <button style="margin-top: 1rem;" onclick="crearUsuario()">Crear usuario</button>
+      <button class="btn-crear" onclick="crearUsuario()">Crear usuario</button>
     </section>
 
     <section id="panel-usuarios">
