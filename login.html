@@ -21,21 +21,10 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
+      text-align: center;
     }
     h1 {
-      text-align: center;
       color: #1a4d2e;
-      margin-bottom: 1rem;
-    }
-    label, input, button {
-      display: block;
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 0.75rem;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-    input#pass {
       margin-bottom: 2rem;
     }
     button {
@@ -43,16 +32,18 @@
       color: white;
       border: none;
       cursor: pointer;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border-radius: 5px;
     }
     .error {
       color: red;
-      text-align: center;
-      margin-top: -0.5rem;
-      margin-bottom: 1rem;
+      margin-top: 1rem;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
@@ -67,40 +58,36 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
 
-    function login() {
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value.trim();
-      const error = document.getElementById('error');
+    function loginConGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(result => {
+          const user = result.user;
+          const email = user.email;
 
-      if (user === 'admin' && pass === '30051992') {
-        alert('Bienvenido Administrador');
-        localStorage.setItem('usuarioActivo', JSON.stringify({ usuario: 'admin', contrasena: '30051992' }));
-        window.location.href = 'rex-vacaciones.html';
-        return;
-      }
+          if (!email.endsWith('@reforestacionextrema.org')) {
+            alert('Solo se permiten correos del dominio @reforestacionextrema.org');
+            auth.signOut();
+            return;
+          }
 
-      db.ref('usuarios').once('value')
-        .then(snapshot => {
-          const data = snapshot.val();
-          if (data) {
-            const usuarios = Object.values(data);
-            const encontrado = usuarios.find(u => u.usuario === user && u.contrasena === pass);
-
-            if (encontrado) {
-              alert(`Bienvenido ${encontrado.nombre}`);
-              localStorage.setItem('usuarioActivo', JSON.stringify(encontrado));
+          const usuarioKey = email.split('@')[0].replace(/[.#$\[\]]/g, '_');
+          db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
+            if (snapshot.exists()) {
+              const usuarioData = snapshot.val();
+              localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
               window.location.href = 'usuario.html';
             } else {
-              error.textContent = 'Credenciales incorrectas';
+              alert('Tu correo es válido, pero aún no estás registrado en el sistema.');
+              auth.signOut();
             }
-          } else {
-            error.textContent = 'No hay usuarios registrados';
-          }
+          });
         })
-        .catch(err => {
-          console.error(err);
-          error.textContent = 'Error al conectarse con la base de datos';
+        .catch(error => {
+          console.error(error);
+          document.getElementById('error').textContent = 'Error en el inicio de sesión con Google';
         });
     }
   </script>
@@ -108,14 +95,8 @@
 <body>
   <div class="login-container">
     <h1>REX Vacaciones</h1>
-    <form onsubmit="event.preventDefault(); login();">
-      <label for="user">Usuario</label>
-      <input type="text" id="user">
-      <label for="pass">Contraseña</label>
-      <input type="password" id="pass">
-      <p id="error" class="error"></p>
-      <button type="submit">Iniciar sesión</button>
-    </form>
+    <button onclick="loginConGoogle()">Iniciar sesión con Google</button>
+    <p id="error" class="error"></p>
   </div>
 </body>
 </html>
