@@ -51,7 +51,8 @@
     }
     .toggle-icon {
       font-size: 1.2rem;
-      margin-left: 1rem;
+      margin-right: 1rem;
+      margin-left: 0;
     }
     label, input, button, select, textarea {
       display: block;
@@ -124,7 +125,7 @@
         const icon = document.createElement('span');
         icon.classList.add('toggle-icon');
         icon.textContent = '▼';
-        header.appendChild(icon);
+        header.insertBefore(icon, header.firstChild);
 
         const content = section.querySelector('.collapsible');
 
