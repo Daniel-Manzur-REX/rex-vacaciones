@@ -121,9 +121,11 @@
 
     function cargarDatosUsuario() {
       document.getElementById('nombreUsuario').textContent = sesion.nombre;
-      document.getElementById('diasTotales').textContent = sesion.dias;
-      document.getElementById('diasUsados').textContent = sesion.usados;
-      document.getElementById('diasRestantes').textContent = sesion.dias - sesion.usados;
+document.getElementById('diasTotales').textContent = sesion.dias;
+document.getElementById('diasUsados').textContent = sesion.usados;
+document.getElementById('diasRestantes').textContent = sesion.dias - sesion.usados;
+document.getElementById('fechaRenovacion').textContent = sesion.renovacion || 'No especificada';
+
 
       db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
         const tbody = document.getElementById('tabla-solicitudes');
@@ -270,6 +272,7 @@ if (hayTraslape) {
       <p><strong>Días totales:</strong> <span id="diasTotales"></span></p>
       <p><strong>Días usados:</strong> <span id="diasUsados"></span></p>
       <p><strong>Días restantes:</strong> <span id="diasRestantes"></span></p>
+      <p><strong>Fecha de renovación:</strong> <span id="fechaRenovacion"></span></p>
     </section>
 
     <section class="solicitud">
