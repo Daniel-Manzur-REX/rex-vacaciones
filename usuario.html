@@ -193,11 +193,15 @@
         };
 
         db.ref('solicitudes').push(nuevaSolicitud).then(() => {
-          db.ref(`usuarios/${sesion.usuario.replace(/[.#$\[\]]/g, '_')}/usados`).set(diasPendientes + diasSolicitados);
-          alert('Solicitud registrada correctamente.');
-          location.reload();
+          const nuevosUsados = diasPendientes + diasSolicitados;
+          const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+          db.ref(`usuarios/${key}/usados`).set(nuevosUsados).then(() => {
+            sesion.usados = nuevosUsados;
+            localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+            alert('Solicitud registrada correctamente.');
+            location.reload();
+          });
         });
-      });
     }
 
     function cambiarContrasena() {
