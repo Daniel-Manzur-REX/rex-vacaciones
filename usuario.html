@@ -171,7 +171,7 @@
         let diasPendientes = 0;
         if (solicitudes) {
           Object.values(solicitudes).forEach(s => {
-            if (s.usuario === sesion.usuario && s.estado === 'Aprobado') {
+            if (s.usuario === sesion.usuario && (s.estado === 'Aprobado' || s.estado === 'Pendiente')) {
               const f1 = new Date(s.inicio);
               const f2 = new Date(s.fin);
               diasPendientes += Math.ceil((f2 - f1) / (1000 * 60 * 60 * 24)) + 1;
@@ -180,7 +180,7 @@
         }
         const restantes = sesion.dias - diasPendientes;
         if (diasSolicitados > restantes) {
-          alert('No tienes suficientes días disponibles.');
+          alert('No tienes suficientes días disponibles considerando tus solicitudes anteriores.');
           return;
         }
 
