@@ -106,9 +106,11 @@
   border-radius: 4px;
 }
 
-.panel-acciones button {
-  flex: 1;
-  margin: 0 0.25rem;
+.panel-acciones .botones {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
     .acciones.active .panel-acciones {
       display: block;
@@ -282,8 +284,10 @@
                   <input type="number" value="${usuario.usados}" id="usados-${usuario.usuario}">
                   <label>Fecha de ingreso</label>
                   <input type="date" value="${usuario.ingreso || ''}" id="ingreso-${usuario.usuario}">
-                  <button onclick="guardarCambios('${usuario.usuario}')">Guardar</button>
-                  <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+                    <div class="botones">
+                      <button onclick="guardarCambios('${usuario.usuario}')">Guardar</button>
+                      <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+</div>
                 </div>
 
               </td>
