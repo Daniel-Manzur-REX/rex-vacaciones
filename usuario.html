@@ -95,193 +95,79 @@
     if (!sesion || !sesion.usuario) {
       window.location.href = 'login.html';
     }
-  </script>
-  <script>
+
     const firebaseConfig = {
       apiKey: "AIzaSyCKaMDGTSblZJ6ZdtBy4F8lBH8ZQdWSiw8",
       authDomain: "rex-vacaciones.firebaseapp.com",
       databaseURL: "https://rex-vacaciones-default-rtdb.firebaseio.com",
       projectId: "rex-vacaciones",
-      storageBucket: "rex-vacaciones.firebasestorage.app",
+      storageBucket: "rex-vacaciones.appspot.com",
       messagingSenderId: "919755172448",
       appId: "1:919755172448:web:3ed268536ae199f7a67105",
       measurementId: "G-Q8CX1R0RXY"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    let usuario = JSON.parse(localStorage.getItem('usuarioActivo'));
-    if (!usuario) window.location.href = 'login.html';
-
-    let solicitudes = [];
 
     function cerrarSesion() {
       localStorage.removeItem('usuarioActivo');
       window.location.href = 'login.html';
     }
 
-    function mostrarError(mensaje) {
-      const error = document.getElementById('leyendaError');
-      error.textContent = mensaje;
-      error.style.display = 'block';
-    }
-
-    function ocultarError() {
-      const error = document.getElementById('leyendaError');
-      error.style.display = 'none';
-    }
-
-    function eliminarSolicitud(index) {
-      if (!confirm('¿Seguro que deseas eliminar esta solicitud?')) return;
-      solicitudes.splice(index, 1);
-      const solicitudesObj = {};
-      solicitudes.forEach((s, i) => {
-        solicitudesObj[`solicitud_${i}`] = s;
-      });
-      db.ref('solicitudes').set(solicitudesObj).then(() => {
-        mostrarSolicitudes();
-      });
-    }
-
-    function mostrarSolicitudes() {
-      const tbody = document.getElementById('tablaSolicitudes');
-      tbody.innerHTML = '';
-      solicitudes.forEach((s, i) => {
-        if (s.usuario === usuario.usuario) {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${s.inicio}</td>
-            <td>${s.fin}</td>
-            <td>${s.estado}</td>
-            <td>${s.justificacion || ''}</td>
-            <td>${s.estado === 'Pendiente' ? '<button onclick="eliminarSolicitud(' + i + ')">Eliminar</button>' : ''}</td>
-          `;
-          tbody.appendChild(row);
-        }
-      });
-    }
-
-    db.ref('usuarios/' + usuario.usuario.replace(/[.#$\[\]]/g, '_')).once('value').then(snapshot => {
-      if (snapshot.exists()) {
-        usuario = snapshot.val();
-        localStorage.setItem('usuarioActivo', JSON.stringify(usuario));
-        document.getElementById('nombreUsuario').textContent = usuario.nombre;
-        document.getElementById('diasRestantes').textContent = usuario.dias - usuario.usados;
-        document.getElementById('diasUsados').textContent = usuario.usados;
-        document.getElementById('fechaRenovacion').textContent = usuario.renovacion;
-      }
-    });
-
-    db.ref('solicitudes').once('value').then(snapshot => {
-      const data = snapshot.val();
-      solicitudes = data ? Object.values(data) : [];
-      mostrarSolicitudes();
-    });
-
-    function solicitarVacaciones() {
-      const inicioInput = document.getElementById('inicio');
-      const finInput = document.getElementById('fin');
-      const inicio = new Date(inicioInput.value);
-      const fin = new Date(finInput.value);
+    function enviarSolicitud() {
+      const inicio = document.getElementById('inicio').value;
+      const fin = document.getElementById('fin').value;
+      const justificacion = document.getElementById('justificacion').value.trim();
       const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
+      const fechaInicio = new Date(inicio);
+      const fechaFin = new Date(fin);
+      const diasAnticipacion = 15;
 
-      const diferencia = (inicio - hoy) / (1000 * 60 * 60 * 24);
-
-      if (isNaN(inicio) || isNaN(fin) || inicio > fin || diferencia < 7) {
-        mostrarError('Las fechas deben solicitarse con al menos 7 días de anticipación.');
+      if (!inicio || !fin || fechaFin < fechaInicio) {
+        alert('Fechas inválidas');
         return;
       }
 
-      const diasSolicitados = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
-      const diasRestantes = usuario.dias - usuario.usados;
-      const diasPendientes = solicitudes.filter(s => s.usuario === usuario.usuario && s.estado === 'Pendiente')
-                                        .reduce((acum, s) => acum + (Math.ceil((new Date(s.fin) - new Date(s.inicio)) / (1000 * 60 * 60 * 24)) + 1), 0);
-
-      if (diasSolicitados + diasPendientes > diasRestantes) {
-        mostrarError(`Ya tienes ${diasPendientes} día(s) en solicitudes pendientes. No puedes solicitar ${diasSolicitados} más.`);
+      if ((fechaInicio - hoy) / (1000 * 60 * 60 * 24) < diasAnticipacion) {
+        alert('Debes solicitar tus vacaciones con al menos 15 días de anticipación.');
         return;
       }
 
-      const traslape = solicitudes.some(s => {
-        return s.usuario === usuario.usuario &&
-          ((new Date(s.inicio) <= fin && new Date(s.fin) >= inicio));
-      });
+      const diasSolicitados = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
 
-      if (traslape) {
-        mostrarError('Ya tienes una solicitud que se traslapa con estas fechas.');
-        return;
-      }
+      db.ref(`solicitudes`).once('value').then(snapshot => {
+        const solicitudes = snapshot.val();
+        let diasPendientes = 0;
+        if (solicitudes) {
+          Object.values(solicitudes).forEach(s => {
+            if (s.usuario === sesion.usuario && s.estado === 'Aprobado') {
+              const f1 = new Date(s.inicio);
+              const f2 = new Date(s.fin);
+              diasPendientes += Math.ceil((f2 - f1) / (1000 * 60 * 60 * 24)) + 1;
+            }
+          });
+        }
+        const restantes = sesion.dias - diasPendientes;
+        if (diasSolicitados > restantes) {
+          alert('No tienes suficientes días disponibles.');
+          return;
+        }
 
-      ocultarError();
+        const nuevaSolicitud = {
+          usuario: sesion.usuario,
+          inicio,
+          fin,
+          estado: 'Aprobado',
+          justificacion
+        };
 
-      const nuevaSolicitud = {
-        usuario: usuario.usuario,
-        inicio: inicio.toISOString().split('T')[0],
-        fin: fin.toISOString().split('T')[0],
-        estado: 'Pendiente',
-        justificacion: ''
-      };
-
-      solicitudes.push(nuevaSolicitud);
-
-      const solicitudesObj = {};
-      solicitudes.forEach((s, i) => {
-        solicitudesObj[`solicitud_${i}`] = s;
-      });
-
-      db.ref('solicitudes').set(solicitudesObj).then(() => {
-        mostrarSolicitudes();
-        inicioInput.value = '';
-        finInput.value = '';
-      });
-    }
-
-    function cambiarContrasena() {
-      const actual = document.getElementById('actual').value.trim();
-      const nueva = document.getElementById('nueva').value.trim();
-      const confirmar = document.getElementById('confirmar').value.trim();
-      const mensaje = document.getElementById('mensaje-cambio');
-      mensaje.textContent = '';
-
-      if (!usuario || !usuario.usuario) {
-        mensaje.textContent = 'Sesión inválida.';
-        return;
-      }
-
-      if (actual !== usuario.contrasena) {
-        mensaje.textContent = 'La contraseña actual no es correcta.';
-        return;
-      }
-
-      if (nueva.length < 6) {
-        mensaje.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
-        return;
-      }
-
-      if (nueva !== confirmar) {
-        mensaje.textContent = 'La nueva contraseña no coincide.';
-        return;
-      }
-
-      const key = usuario.usuario.replace(/[.#$\[\]]/g, '_');
-      firebase.database().ref('usuarios/' + key).update({ contrasena: nueva })
-        .then(() => {
-          usuario.contrasena = nueva;
-          localStorage.setItem('usuarioActivo', JSON.stringify(usuario));
-          mensaje.classList.remove('error');
-          mensaje.classList.add('success');
-          mensaje.textContent = 'Contraseña actualizada correctamente.';
-          document.getElementById('actual').value = '';
-          document.getElementById('nueva').value = '';
-          document.getElementById('confirmar').value = '';
-        })
-        .catch(error => {
-          mensaje.classList.remove('success');
-          mensaje.classList.add('error');
-          mensaje.textContent = 'Error al actualizar la contraseña.';
-          console.error(error);
+        db.ref('solicitudes').push(nuevaSolicitud).then(() => {
+          db.ref(`usuarios/${sesion.usuario.replace(/[.#$\[\]]/g, '_')}/usados`).set(diasPendientes + diasSolicitados);
+          alert('Solicitud registrada correctamente.');
+          location.reload();
         });
+      });
     }
   </script>
 </head>
@@ -293,50 +179,17 @@
     </div>
   </header>
   <main>
-    <div class="info">
-      <h1 id="nombreUsuario"></h1>
-      <p><strong>Días restantes:</strong> <span id="diasRestantes"></span></p>
-      <p><strong>Días utilizados:</strong> <span id="diasUsados"></span></p>
-      <p><strong>Fecha de renovación:</strong> <span id="fechaRenovacion"></span></p>
-    </div>
-
-    <div class="solicitud">
+    <section class="solicitud">
       <h2>Solicitar vacaciones</h2>
-      <label for="inicio">Fecha de inicio:</label>
+      <label for="inicio">Fecha de inicio</label>
       <input type="date" id="inicio">
-      <label for="fin">Fecha de fin:</label>
+      <label for="fin">Fecha de fin</label>
       <input type="date" id="fin">
-      <p class="error" id="leyendaError" style="display:none"></p>
-      <button id="btnSolicitud" onclick="solicitarVacaciones()" style="width: auto; padding: 0.5rem 1.25rem;">Enviar solicitud</button>
-    </div>
-
-    <div class="historial">
-      <h2>Mis solicitudes</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Estado</th>
-            <th>Justificación</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaSolicitudes"></tbody>
-      </table>
-    </div>
-
-    <div class="cambio-pass">
-      <h2>Cambiar contraseña</h2>
-      <label for="actual">Contraseña actual</label>
-      <input type="password" id="actual">
-      <label for="nueva">Nueva contraseña</label>
-      <input type="password" id="nueva">
-      <label for="confirmar">Confirmar nueva contraseña</label>
-      <input type="password" id="confirmar">
-      <button onclick="cambiarContrasena()">Actualizar contraseña</button>
-      <p id="mensaje-cambio" class="error"></p>
-    </div>
+      <label for="justificacion">Justificación</label>
+      <input type="text" id="justificacion">
+      <button onclick="enviarSolicitud()">Enviar solicitud</button>
+    </section>
   </main>
 </body>
 </html>
+
