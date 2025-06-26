@@ -115,6 +115,36 @@
       window.location.href = 'login.html';
     }
 
+    function cargarDatosUsuario() {
+      document.getElementById('nombreUsuario').textContent = sesion.nombre;
+      document.getElementById('diasTotales').textContent = sesion.dias;
+      document.getElementById('diasUsados').textContent = sesion.usados;
+      document.getElementById('diasRestantes').textContent = sesion.dias - sesion.usados;
+
+      db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
+        const tbody = document.getElementById('tabla-solicitudes');
+        tbody.innerHTML = '';
+        snapshot.forEach(child => {
+          const solicitud = child.val();
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${solicitud.inicio}</td>
+            <td>${solicitud.fin}</td>
+            <td>${solicitud.estado}</td>
+            <td>${solicitud.justificacion || ''}</td>
+            <td><button onclick="cancelarSolicitud('${child.key}')">Eliminar</button></td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    function cancelarSolicitud(id) {
+      if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
+        db.ref('solicitudes/' + id).remove().then(() => location.reload());
+      }
+    }
+
     function enviarSolicitud() {
       const inicio = document.getElementById('inicio').value;
       const fin = document.getElementById('fin').value;
@@ -169,6 +199,21 @@
         });
       });
     }
+
+    function cambiarContrasena() {
+      const nueva = document.getElementById('nueva-pass').value;
+      if (nueva.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres.');
+        return;
+      }
+      const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref('usuarios/' + key + '/contrasena').set(nueva).then(() => {
+        alert('Contraseña actualizada.');
+        document.getElementById('nueva-pass').value = '';
+      });
+    }
+
+    window.onload = cargarDatosUsuario;
   </script>
 </head>
 <body>
@@ -179,6 +224,13 @@
     </div>
   </header>
   <main>
+    <section class="info">
+      <h2>Bienvenido, <span id="nombreUsuario"></span></h2>
+      <p><strong>Días totales:</strong> <span id="diasTotales"></span></p>
+      <p><strong>Días usados:</strong> <span id="diasUsados"></span></p>
+      <p><strong>Días restantes:</strong> <span id="diasRestantes"></span></p>
+    </section>
+
     <section class="solicitud">
       <h2>Solicitar vacaciones</h2>
       <label for="inicio">Fecha de inicio</label>
@@ -189,7 +241,29 @@
       <input type="text" id="justificacion">
       <button onclick="enviarSolicitud()">Enviar solicitud</button>
     </section>
+
+    <section class="historial">
+      <h2>Historial de solicitudes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Justificación</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-solicitudes"></tbody>
+      </table>
+    </section>
+
+    <section class="cambio-pass">
+      <h2>Cambiar contraseña</h2>
+      <label for="nueva-pass">Nueva contraseña</label>
+      <input type="password" id="nueva-pass">
+      <button onclick="cambiarContrasena()">Actualizar contraseña</button>
+    </section>
   </main>
 </body>
 </html>
-
