@@ -287,7 +287,7 @@
                     <div class="botones">
                       <button onclick="guardarCambios('${usuario.usuario}')">Guardar</button>
                       <button onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
-</div>
+                  </div>
                 </div>
 
               </td>
@@ -300,14 +300,13 @@
 
     function guardarCambios(usuario) {
   const key = usuario.replace(/[.#$\[\]]/g, '_');
-  const diasInput = parseInt(document.getElementById(`dias-${usuario}`).value);
   const usados = parseInt(document.getElementById(`usados-${usuario}`).value);
   const ingreso = document.getElementById(`ingreso-${usuario}`).value;
   const renovacion = calcularRenovacion(ingreso);
   const diasCalculados = calcularDiasPorAntiguedad(ingreso);
 
   db.ref('usuarios/' + key).update({
-    dias: diasCalculados || diasInput,
+    dias: diasCalculados,
     usados,
     renovacion,
     ingreso
