@@ -87,6 +87,10 @@
     th {
       background-color: #e8f5e9;
     }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -124,24 +128,42 @@
       db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
         const tbody = document.getElementById('tabla-solicitudes');
         tbody.innerHTML = '';
+        const hoy = new Date().toISOString().split('T')[0];
+
         snapshot.forEach(child => {
           const solicitud = child.val();
+          const esEditable = hoy < solicitud.inicio;
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${solicitud.inicio}</td>
             <td>${solicitud.fin}</td>
             <td>${solicitud.estado}</td>
             <td>${solicitud.justificacion || ''}</td>
-            <td><button onclick="cancelarSolicitud('${child.key}')">Eliminar</button></td>
+            <td><button onclick="cancelarSolicitud('${child.key}', ${Math.ceil((new Date(solicitud.fin) - new Date(solicitud.inicio)) / (1000 * 60 * 60 * 24)) + 1})" ${!esEditable ? 'disabled' : ''}>Eliminar</button></td>
           `;
           tbody.appendChild(row);
         });
       });
     }
 
-    function cancelarSolicitud(id) {
+    function cancelarSolicitud(id, dias) {
       if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
-        db.ref('solicitudes/' + id).remove().then(() => location.reload());
+        db.ref('solicitudes/' + id).once('value').then(snapshot => {
+          const solicitud = snapshot.val();
+          if (!solicitud) return;
+          const hoy = new Date().toISOString().split('T')[0];
+          if (hoy >= solicitud.inicio) return alert('No puedes eliminar una solicitud que ya comenzó.');
+
+          db.ref('solicitudes/' + id).remove().then(() => {
+            const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+            const nuevosUsados = sesion.usados - dias;
+            db.ref(`usuarios/${key}/usados`).set(nuevosUsados).then(() => {
+              sesion.usados = nuevosUsados;
+              localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+              location.reload();
+            });
+          });
+        });
       }
     }
 
