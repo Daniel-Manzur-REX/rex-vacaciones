@@ -202,9 +202,23 @@
         }
         const restantes = sesion.dias - diasPendientes;
         if (diasSolicitados > restantes) {
-          alert('No tienes suficientes días disponibles considerando tus solicitudes anteriores.');
-          return;
-        }
+  alert('No tienes suficientes días disponibles considerando tus solicitudes anteriores.');
+  return;
+}
+
+const hayTraslape = Object.values(solicitudes || {}).some(s => {
+  if (s.usuario !== sesion.usuario || (s.estado !== 'Aprobado' && s.estado !== 'Pendiente')) return false;
+
+  const sInicio = new Date(s.inicio);
+  const sFin = new Date(s.fin);
+  return (fechaInicio <= sFin && fechaFin >= sInicio);
+});
+
+if (hayTraslape) {
+  alert('Ya tienes una solicitud que se traslapa con las fechas seleccionadas.');
+  return;
+}
+
 
         const nuevaSolicitud = {
           usuario: sesion.usuario,
