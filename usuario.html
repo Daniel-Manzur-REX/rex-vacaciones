@@ -290,7 +290,7 @@
     }
 
     function notificarGoogleCalendar(usuario, inicio, fin, accion) {
-      fetch('https://script.google.com/macros/s/AKfycby65ffzLXVhL1pxGUC0bUufn5egY8G9S_35LnJ_GP1v-2zNg6c2k2sM1uZ2xSK7rxWd/exec', {
+      fetch("https://script.google.com/macros/s/AKfycby65ffzLXVhL1pxGUC0bUufn5egY8G9S_35LnJ_GP1v-2zNg6c2k2sM1uZ2xSK7rxWd/exec", {
         method: 'POST',
         body: JSON.stringify({ usuario, inicio, fin, accion }),
         headers: { 'Content-Type': 'application/json' }
