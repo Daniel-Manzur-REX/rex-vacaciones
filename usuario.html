@@ -132,14 +132,14 @@
           localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
           location.reload();
         });
+      }
         return;
       }
       document.getElementById('nombreUsuario').textContent = sesion.nombre;
-document.getElementById('diasTotales').textContent = sesion.dias;
-document.getElementById('diasUsados').textContent = sesion.usados;
-document.getElementById('diasRestantes').textContent = sesion.dias - sesion.usados;
-document.getElementById('fechaRenovacion').textContent = sesion.renovacion || 'No especificada';
-
+      document.getElementById('diasTotales').textContent = sesion.dias;
+      document.getElementById('diasUsados').textContent = sesion.usados;
+      document.getElementById('diasRestantes').textContent = sesion.dias - sesion.usados;
+      document.getElementById('fechaRenovacion').textContent = sesion.renovacion || 'No especificada';
 
       db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
         const tbody = document.getElementById('tabla-solicitudes');
