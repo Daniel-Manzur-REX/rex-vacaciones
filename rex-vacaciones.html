@@ -34,7 +34,7 @@
       font-size: 1rem;
     }
     main {
-      max-width: 1200px;
+      max-width: 1000px;
       margin: 2rem auto;
       padding: 1rem;
       background: white;
@@ -102,16 +102,15 @@
       width: 250px;
     }
     .panel-acciones input {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.panel-acciones .botones {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .panel-acciones .botones {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
     .acciones.active .panel-acciones {
       display: block;
     }
@@ -131,26 +130,18 @@
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('section').forEach(section => {
         const header = section.querySelector('h2');
-        const icon = document.createElement('span');
-        icon.classList.add('toggle-icon');
-        icon.textContent = '▼';
-
-        const titleText = header.textContent;
-        header.textContent = '';
-
         const container = document.createElement('span');
         container.style.display = 'flex';
         container.style.alignItems = 'center';
-        container.innerHTML = `<span class="toggle-icon">▼</span><span style="margin-left: 0.5rem;">${titleText}</span>`;
+        container.innerHTML = `<span class="toggle-icon">▼</span><span style="margin-left: 0.5rem;">${header.textContent}</span>`;
+        header.textContent = '';
         header.appendChild(container);
-
         const content = section.querySelector('.collapsible');
-
         header.addEventListener('click', () => {
           if (content) {
-            const isVisible = content.style.display !== 'none';
-            content.style.display = isVisible ? 'none' : 'block';
-            container.querySelector('.toggle-icon').textContent = isVisible ? '►' : '▼';
+            const visible = content.style.display !== 'none';
+            content.style.display = visible ? 'none' : 'block';
+            container.querySelector('.toggle-icon').textContent = visible ? '►' : '▼';
           }
         });
       });
@@ -175,28 +166,20 @@
       window.location.href = 'login.html';
     }
 
-    function toggleSection(btn) {
-      const section = btn.closest('section');
-      const content = section.querySelector('.collapsible');
-      const visible = content.style.display !== 'none';
-      content.style.display = visible ? 'none' : 'block';
-      btn.textContent = visible ? '►' : '▼';
-    }
     function crearUsuario() {
       const nombre = document.getElementById('nombre').value.trim();
       const usuario = document.getElementById('usuario').value.trim();
       const correo = document.getElementById('correo').value.trim();
       const contrasena = document.getElementById('contrasena').value.trim();
-      const dias = calcularDiasPorAntiguedad(ingreso);
       const ingreso = document.getElementById('fecha-ingreso').value;
+      const dias = calcularDiasPorAntiguedad(ingreso);
       const renovacion = calcularRenovacion(ingreso);
-
-
+    
       if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
         alert('Por favor complete todos los campos correctamente.');
         return;
       }
-
+    
       const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
       const usuarioKey = usuario.replace(/[.#$\[\]]/g, '_');
       db.ref('usuarios/' + usuarioKey).set(nuevoUsuario, error => {
@@ -208,14 +191,13 @@
         }
       });
     }
-    
+        
 function calcularRenovacion(ingreso) {
   const fechaIngreso = new Date(ingreso);
   const hoy = new Date();
   let siguienteRenovacion = new Date(fechaIngreso);
   siguienteRenovacion.setFullYear(siguienteRenovacion.getFullYear() + 1);
 
-  // Avanzar la fecha hasta que esté en el futuro
   while (siguienteRenovacion <= hoy) {
     siguienteRenovacion.setFullYear(siguienteRenovacion.getFullYear() + 1);
   }
@@ -236,7 +218,7 @@ function calcularRenovacion(ingreso) {
   const diaIngreso = ingreso.getDate();
 
   if (mesActual < mesIngreso || (mesActual === mesIngreso && diaActual < diaIngreso)) {
-    anios--; // Aún no cumple el año
+    anios--; 
   }
 
   if (anios < 1) return 12;
@@ -335,12 +317,10 @@ function calcularRenovacion(ingreso) {
               <td>${solicitud.inicio}</td>
               <td>${solicitud.fin}</td>
               <td>${solicitud.estado}</td>
-              <td>${solicitud.justificacion || ''}</td>
               <td class="acciones">
                 <button onclick="mostrarPanel(this)">Acciones</button>
                 <div class="panel-acciones">
                   <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
-                </div>
                 </div>
               </td>`;
             tbody.appendChild(row);
@@ -359,28 +339,6 @@ function calcularRenovacion(ingreso) {
         document.querySelectorAll('.acciones').forEach(el => el.classList.remove('active'));
       }
     });
-
-    function aprobarSolicitud(key, usuario, inicio, fin) {
-      const usuarioKey = usuario.replace(/[.#$\[\]]/g, '_');
-      const dias = Math.ceil((new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24)) + 1;
-
-      db.ref(`solicitudes/${key}`).update({ estado: 'Aprobado', justificacion: '' });
-
-      db.ref(`usuarios/${usuarioKey}/usados`).once('value').then(snapshot => {
-        const usadosActuales = snapshot.val() || 0;
-        db.ref(`usuarios/${usuarioKey}`).update({ usados: usadosActuales + dias }).then(() => {
-          cargarUsuarios();
-          cargarSolicitudes();
-        });
-      });
-    }
-
-    function rechazarSolicitud(key, usuario, inicio, fin) {
-      const motivo = prompt('Motivo del rechazo:');
-      if (motivo) {
-        db.ref(`solicitudes/${key}`).update({ estado: 'Rechazado', justificacion: motivo }).then(cargarSolicitudes);
-      }
-    }
 
     function eliminarSolicitud(key) {
       db.ref(`solicitudes/${key}`).remove().then(cargarSolicitudes);
@@ -445,7 +403,6 @@ function calcularRenovacion(ingreso) {
             <th>Inicio</th>
             <th>Fin</th>
             <th>Estado</th>
-            <th>Justificación</th>
             <th>Acciones</th>
           </tr>
         </thead>
