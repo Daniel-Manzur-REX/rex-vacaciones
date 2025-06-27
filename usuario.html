@@ -156,13 +156,24 @@
             <td>${solicitud.inicio}</td>
             <td>${solicitud.fin}</td>
             <td>${solicitud.estado}</td>
-            <td><button onclick="cancelarSolicitud('${child.key}', ${Math.ceil((new Date(solicitud.fin) - new Date(solicitud.inicio)) / (1000 * 60 * 60 * 24)) + 1})" ${!esEditable ? 'disabled' : ''}>Eliminar</button></td>
+            <td><button onclick="cancelarSolicitud('${child.key}', ${contarDiasHabiles(solicitud.inicio, solicitud.fin)})" ${!esEditable ? 'disabled' : ''}>Eliminar</button></td>
           `;
           tbody.appendChild(row);
         });
       });
     }
+    function contarDiasHabiles(inicio, fin) {
+      const start = new Date(inicio);
+      const end = new Date(fin);
+      let dias = 0;
 
+      while (start <= end) {
+        if (start.getDay() !== 0) dias++; // Excluye domingos
+        start.setDate(start.getDate() + 1);
+      }
+
+      return dias;
+    }
     function cancelarSolicitud(id, dias) {
       if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
         db.ref('solicitudes/' + id).once('value').then(snapshot => {
