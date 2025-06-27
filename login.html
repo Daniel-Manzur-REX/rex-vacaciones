@@ -103,8 +103,8 @@
             auth.signOut();
             return;
           }
-          const usuarioKey = user.email.split('@')[0].replace(/[.#$\[\]]/g, '_');
-          db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
+          const key = user.email.split('@')[0].replace(/[.#$\[\]]/g, '_');
+          db.ref('usuarios/' + key).once('value').then(snapshot => {
             if (snapshot.exists()) {
               const usuarioData = snapshot.val();
               localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
@@ -114,7 +114,7 @@
                 window.location.href = 'usuario.html';
               }
             } else {
-              alert('Tu correo es válido, pero aún no estás registrado.');
+              alert('Tu correo es válido, pero aún no estás registrado en la base de datos.');
               auth.signOut();
             }
           });
@@ -127,32 +127,34 @@
 
     function loginManual(event) {
       event.preventDefault();
-      const user = document.getElementById('user').value.trim();
+      const email = document.getElementById('user').value.trim();
       const pass = document.getElementById('pass').value.trim();
       const errorEl = document.getElementById('error');
+      errorEl.textContent = '';
 
-      const userKey = user.replace(/[.#$\[\]]/g, '_');
-      db.ref('usuarios/' + userKey).once('value')
-        .then(snapshot => {
-          if (snapshot.exists()) {
-            const usuarioData = snapshot.val();
-            if (usuarioData.contrasena === pass) {
-              localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
-              if (usuarioData.isAdmin) {
-                window.location.href = 'rex-vacaciones.html';
-              } else {
-                window.location.href = 'usuario.html';
-              }
-            } else {
-              errorEl.textContent = 'Contraseña incorrecta';
-            }
-          } else {
-            errorEl.textContent = 'Usuario no encontrado';
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(({ user }) => {
+          if (!user.email.endsWith('@reforestacionextrema.org')) {
+            errorEl.textContent = 'Solo correos @reforestacionextrema.org';
+            auth.signOut();
+            return;
           }
+          const key = user.email.split('@')[0].replace(/[.#$\[\]]/g, '_');
+          db.ref('usuarios/' + key).once('value').then(snapshot => {
+            if (snapshot.exists()) {
+              const usuarioData = snapshot.val();
+              localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
+              if (usuarioData.isAdmin) window.location.href = 'rex-vacaciones.html';
+              else window.location.href = 'usuario.html';
+            } else {
+              errorEl.textContent = 'Usuario no encontrado en la base de datos';
+              auth.signOut();
+            }
+          });
         })
         .catch(err => {
           console.error(err);
-          errorEl.textContent = 'Error al conectar con la base de datos';
+          errorEl.textContent = 'Credenciales incorrectas';
         });
     }
   </script>
@@ -162,7 +164,7 @@
     <img src="assets/creamos-futuro.png" alt="Logo RE">
     <h1>Portal de Vacaciones RE</h1>
     <form onsubmit="loginManual(event)">
-      <input type="text" id="user" placeholder="Usuario">
+      <input type="text" id="user" placeholder="Correo electrónico">
       <input type="password" id="pass" placeholder="Contraseña">
       <button type="submit" class="login-button">Iniciar sesión</button>
     </form>
