@@ -123,18 +123,20 @@
       const hoy = new Date();
       const renovacion = new Date(sesion.renovacion);
 
-    if (hoy >= renovacion) {
-      const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
-      db.ref(`usuarios/${key}`).update({ usados: 0 }).then(() => {
-        sesion.usados = 0;
-        sesion.renovacion = new Date(renovacion.setFullYear(renovacion.getFullYear() + 1)).toISOString().split('T')[0];
-        db.ref(`usuarios/${key}/renovacion`).set(sesion.renovacion);
-        localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
-        location.reload();
-      });
-      return;
-    }
-    
+      if (hoy >= renovacion) {
+        const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+        renovacion.setFullYear(renovacion.getFullYear() + 1);
+        const nuevaFecha = renovacion.toISOString().split('T')[0];
+
+        db.ref(`usuarios/${key}`).update({ usados: 0, renovacion: nuevaFecha }).then(() => {
+          sesion.usados = 0;
+          sesion.renovacion = nuevaFecha;
+          localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+          location.reload();
+        });
+        return;
+      }
+
       document.getElementById('nombreUsuario').textContent = sesion.nombre;
       document.getElementById('diasTotales').textContent = sesion.dias;
       document.getElementById('diasUsados').textContent = sesion.usados;
@@ -154,7 +156,6 @@
             <td>${solicitud.inicio}</td>
             <td>${solicitud.fin}</td>
             <td>${solicitud.estado}</td>
-            <td>${solicitud.justificacion || ''}</td>
             <td><button onclick="cancelarSolicitud('${child.key}', ${Math.ceil((new Date(solicitud.fin) - new Date(solicitud.inicio)) / (1000 * 60 * 60 * 24)) + 1})" ${!esEditable ? 'disabled' : ''}>Eliminar</button></td>
           `;
           tbody.appendChild(row);
@@ -183,77 +184,75 @@
       }
     }
 
-   function enviarSolicitud() {
-  const inicio = document.getElementById('inicio').value;
-  const fin = document.getElementById('fin').value;
-  const mensaje = document.getElementById('mensajeSolicitud');
+    function enviarSolicitud() {
+      const inicio = document.getElementById('inicio').value;
+      const fin = document.getElementById('fin').value;
+      const mensaje = document.getElementById('mensajeSolicitud');
 
-  if (!inicio || !fin) {
-    mensaje.textContent = 'Por favor completa ambas fechas.';
-    return;
-  }
-
-  const fechaInicio = new Date(inicio);
-  const fechaFin = new Date(fin);
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-
-  if (fechaInicio < hoy) {
-    mensaje.textContent = 'No puedes solicitar vacaciones con fecha pasada.';
-    return;
-  }
-
-  if (fechaInicio > fechaFin) {
-    mensaje.textContent = 'La fecha de inicio debe ser antes de la fecha de fin.';
-    return;
-  }
-
-  const diasSolicitados = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
-  const restantes = sesion.dias - sesion.usados;
-
-  if (diasSolicitados > restantes) {
-    mensaje.textContent = 'No tienes suficientes días disponibles.';
-    return;
-  }
-
-  // Validar traslape
-  db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
-    let traslape = false;
-    snapshot.forEach(child => {
-      const solicitud = child.val();
-      const ini = new Date(solicitud.inicio);
-      const fin = new Date(solicitud.fin);
-
-      if ((fechaInicio <= fin && fechaInicio >= ini) || (fechaFin <= fin && fechaFin >= ini) || (fechaInicio <= ini && fechaFin >= fin)) {
-        traslape = true;
+      if (!inicio || !fin) {
+        mensaje.textContent = 'Por favor completa ambas fechas.';
+        return;
       }
-    });
 
-    if (traslape) {
-      mensaje.textContent = 'Ya tienes una solicitud en esas fechas.';
-      return;
-    }
+      const fechaInicio = new Date(inicio);
+      const fechaFin = new Date(fin);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
 
-    const nueva = {
-      usuario: sesion.usuario,
-      inicio,
-      fin,
-      estado: 'Aprobado'
-    };
+      if (fechaInicio < hoy) {
+        mensaje.textContent = 'No puedes solicitar vacaciones con fecha pasada.';
+        return;
+      }
 
-    const key = db.ref().child('solicitudes').push().key;
-    db.ref('solicitudes/' + key).set(nueva).then(() => {
-      const usuarioKey = sesion.usuario.replace(/[.#$\[\]]/g, '_');
-      db.ref(`usuarios/${usuarioKey}/usados`).set(sesion.usados + diasSolicitados).then(() => {
-        sesion.usados += diasSolicitados;
-        localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
-        mensaje.className = 'success';
-        mensaje.textContent = 'Solicitud enviada correctamente.';
-        cargarDatosUsuario();
+      if (fechaInicio > fechaFin) {
+        mensaje.textContent = 'La fecha de inicio debe ser antes de la fecha de fin.';
+        return;
+      }
+
+      const diasSolicitados = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
+      const restantes = sesion.dias - sesion.usados;
+
+      if (diasSolicitados > restantes) {
+        mensaje.textContent = 'No tienes suficientes días disponibles.';
+        return;
+      }
+
+      db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
+        let traslape = false;
+        snapshot.forEach(child => {
+          const solicitud = child.val();
+          const ini = new Date(solicitud.inicio);
+          const fin = new Date(solicitud.fin);
+
+          if ((fechaInicio <= fin && fechaInicio >= ini) || (fechaFin <= fin && fechaFin >= ini) || (fechaInicio <= ini && fechaFin >= fin)) {
+            traslape = true;
+          }
+        });
+
+        if (traslape) {
+          mensaje.textContent = 'Ya tienes una solicitud en esas fechas.';
+          return;
+        }
+
+        const nueva = {
+          usuario: sesion.usuario,
+          inicio,
+          fin,
+          estado: 'Aprobado'
+        };
+
+        const key = db.ref().child('solicitudes').push().key;
+        db.ref('solicitudes/' + key).set(nueva).then(() => {
+          const usuarioKey = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+          db.ref(`usuarios/${usuarioKey}/usados`).set(sesion.usados + diasSolicitados).then(() => {
+            sesion.usados += diasSolicitados;
+            localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+            mensaje.className = 'success';
+            mensaje.textContent = 'Solicitud enviada correctamente.';
+            cargarDatosUsuario();
+          });
+        });
       });
-    });
-  });
-}
     }
 
     function cambiarContrasena() {
@@ -288,17 +287,17 @@
       <p><strong>Fecha de renovación:</strong> <span id="fechaRenovacion"></span></p>
     </section>
 
-<section class="solicitud">
-  <h2>Solicitar Vacaciones</h2>
-  <label for="inicio">Fecha de inicio</label>
-  <input type="date" id="inicio">
+    <section class="solicitud">
+      <h2>Solicitar Vacaciones</h2>
+      <label for="inicio">Fecha de inicio</label>
+      <input type="date" id="inicio">
 
-  <label for="fin">Fecha de fin</label>
-  <input type="date" id="fin">
+      <label for="fin">Fecha de fin</label>
+      <input type="date" id="fin">
 
-  <button onclick="enviarSolicitud()">Enviar solicitud</button>
-  <p id="mensajeSolicitud" class="error"></p>
-</section>
+      <button onclick="enviarSolicitud()">Enviar solicitud</button>
+      <p id="mensajeSolicitud" class="error"></p>
+    </section>
 
     <section class="historial">
       <h2>Historial de solicitudes</h2>
