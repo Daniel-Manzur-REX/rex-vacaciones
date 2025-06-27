@@ -296,7 +296,7 @@ function notificarGoogleCalendar(usuario, inicio, fin, accion) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ nombre: usuario, inicio, fin, accion })
+    body: JSON.stringify({ usuario, inicio, fin, accion })
   });
 }
 
