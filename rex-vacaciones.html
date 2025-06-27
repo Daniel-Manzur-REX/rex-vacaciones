@@ -339,9 +339,8 @@ function calcularRenovacion(ingreso) {
               <td class="acciones">
                 <button onclick="mostrarPanel(this)">Acciones</button>
                 <div class="panel-acciones">
-                  <button onclick="aprobarSolicitud('${key}', '${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Aprobar</button>
-                  <button onclick="rechazarSolicitud('${key}', '${solicitud.usuario}', '${solicitud.inicio}', '${solicitud.fin}')">Rechazar</button>
                   <button onclick="eliminarSolicitud('${key}')">Eliminar</button>
+                </div>
                 </div>
               </td>`;
             tbody.appendChild(row);
