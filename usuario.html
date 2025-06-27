@@ -188,7 +188,7 @@
             db.ref(`usuarios/${key}/usados`).set(nuevosUsados).then(() => {
               sesion.usados = nuevosUsados;
               localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
-              notificarGoogleCalendar(sesion.usuario, solicitud.inicio, solicitud.fin, 'eliminar');
+              notificarGoogleCalendar(sesion.nombre, solicitud.inicio, solicitud.fin, 'eliminar');
               location.reload();
             });
           });
@@ -270,7 +270,7 @@
             mensaje.className = 'success';
             mensaje.textContent = 'Solicitud enviada correctamente.';
             cargarDatosUsuario();
-            notificarGoogleCalendar(sesion.usuario, inicio, fin, 'agregar');
+            notificarGoogleCalendar(sesion.nombre, inicio, fin, 'agregar');
           });
         });
       });
