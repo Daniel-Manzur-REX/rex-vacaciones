@@ -188,7 +188,7 @@
             db.ref(`usuarios/${key}/usados`).set(nuevosUsados).then(() => {
               sesion.usados = nuevosUsados;
               localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
-              notificarGoogleCalendar(sesion.usuario, solicitud.inicio, solicitud.fin, 'eliminar');
+              notificarGoogleCalendar(sesion.nombre, solicitud.inicio, solicitud.fin, 'eliminar');
               location.reload();
             });
           });
@@ -270,7 +270,7 @@
             mensaje.className = 'success';
             mensaje.textContent = 'Solicitud enviada correctamente.';
             cargarDatosUsuario();
-            notificarGoogleCalendar(sesion.usuario, inicio, fin, 'agregar');
+            notificarGoogleCalendar(sesion.nombre, inicio, fin, 'agregar');
           });
         });
       });
@@ -289,10 +289,10 @@
       });
     }
 
-    function notificarGoogleCalendar(usuario, inicio, fin, accion) {
+    function notificarGoogleCalendar(nombre, inicio, fin, accion) {
       fetch("https://script.google.com/macros/s/AKfycby65ffzLXVhL1pxGUC0bUufn5egY8G9S_35LnJ_GP1v-2zNg6c2k2sM1uZ2xSK7rxWd/exec", {
         method: 'POST',
-        body: JSON.stringify({ usuario, inicio, fin, accion }),
+        body: JSON.stringify({ nombre, inicio, fin, accion }),
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.text())
