@@ -183,58 +183,77 @@ document.getElementById('fechaRenovacion').textContent = sesion.renovacion || 'N
       }
     }
 
-    function enviarSolicitud() {
-      const inicio = document.getElementById('inicio').value;
-      const fin = document.getElementById('fin').value;
-      const justificacion = document.getElementById('justificacion').value.trim();
-      const hoy = new Date();
-      const fechaInicio = new Date(inicio);
-      const fechaFin = new Date(fin);
-      const diasAnticipacion = 15;
+   function enviarSolicitud() {
+  const inicio = document.getElementById('inicio').value;
+  const fin = document.getElementById('fin').value;
+  const mensaje = document.getElementById('mensajeSolicitud');
 
-      if (!inicio || !fin || fechaFin < fechaInicio) {
-        alert('Fechas inválidas');
-        return;
+  if (!inicio || !fin) {
+    mensaje.textContent = 'Por favor completa ambas fechas.';
+    return;
+  }
+
+  const fechaInicio = new Date(inicio);
+  const fechaFin = new Date(fin);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  if (fechaInicio < hoy) {
+    mensaje.textContent = 'No puedes solicitar vacaciones con fecha pasada.';
+    return;
+  }
+
+  if (fechaInicio > fechaFin) {
+    mensaje.textContent = 'La fecha de inicio debe ser antes de la fecha de fin.';
+    return;
+  }
+
+  const diasSolicitados = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
+  const restantes = sesion.dias - sesion.usados;
+
+  if (diasSolicitados > restantes) {
+    mensaje.textContent = 'No tienes suficientes días disponibles.';
+    return;
+  }
+
+  // Validar traslape
+  db.ref('solicitudes').orderByChild('usuario').equalTo(sesion.usuario).once('value').then(snapshot => {
+    let traslape = false;
+    snapshot.forEach(child => {
+      const solicitud = child.val();
+      const ini = new Date(solicitud.inicio);
+      const fin = new Date(solicitud.fin);
+
+      if ((fechaInicio <= fin && fechaInicio >= ini) || (fechaFin <= fin && fechaFin >= ini) || (fechaInicio <= ini && fechaFin >= fin)) {
+        traslape = true;
       }
+    });
 
-      if ((fechaInicio - hoy) / (1000 * 60 * 60 * 24) < diasAnticipacion) {
-        alert('Debes solicitar tus vacaciones con al menos 15 días de anticipación.');
-        return;
-      }
+    if (traslape) {
+      mensaje.textContent = 'Ya tienes una solicitud en esas fechas.';
+      return;
+    }
 
-      const diasSolicitados = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
+    const nueva = {
+      usuario: sesion.usuario,
+      inicio,
+      fin,
+      estado: 'Aprobado'
+    };
 
-      db.ref(`solicitudes`).once('value').then(snapshot => {
-        const solicitudes = snapshot.val();
-        let diasPendientes = 0;
-        if (solicitudes) {
-          Object.values(solicitudes).forEach(s => {
-            if (s.usuario === sesion.usuario && (s.estado === 'Aprobado' || s.estado === 'Pendiente')) {
-              const f1 = new Date(s.inicio);
-              const f2 = new Date(s.fin);
-              diasPendientes += Math.ceil((f2 - f1) / (1000 * 60 * 60 * 24)) + 1;
-            }
-          });
-        }
-        const restantes = sesion.dias - diasPendientes;
-        if (diasSolicitados > restantes) {
-  alert('No tienes suficientes días disponibles considerando tus solicitudes anteriores.');
-  return;
+    const key = db.ref().child('solicitudes').push().key;
+    db.ref('solicitudes/' + key).set(nueva).then(() => {
+      const usuarioKey = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref(`usuarios/${usuarioKey}/usados`).set(sesion.usados + diasSolicitados).then(() => {
+        sesion.usados += diasSolicitados;
+        localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+        mensaje.className = 'success';
+        mensaje.textContent = 'Solicitud enviada correctamente.';
+        cargarDatosUsuario();
+      });
+    });
+  });
 }
-
-const hayTraslape = Object.values(solicitudes || {}).some(s => {
-  if (s.usuario !== sesion.usuario || (s.estado !== 'Aprobado' && s.estado !== 'Pendiente')) return false;
-
-  const sInicio = new Date(s.inicio);
-  const sFin = new Date(s.fin);
-  return (fechaInicio <= sFin && fechaFin >= sInicio);
-});
-
-if (hayTraslape) {
-  alert('Ya tienes una solicitud que se traslapa con las fechas seleccionadas.');
-  return;
-}
-
 
         const nuevaSolicitud = {
           usuario: sesion.usuario,
@@ -289,14 +308,17 @@ if (hayTraslape) {
       <p><strong>Fecha de renovación:</strong> <span id="fechaRenovacion"></span></p>
     </section>
 
-    <section class="solicitud">
-      <h2>Solicitar vacaciones</h2>
-      <label for="inicio">Fecha de inicio</label>
-      <input type="date" id="inicio">
-      <label for="fin">Fecha de fin</label>
-      <input type="date" id="fin">
-      <button onclick="enviarSolicitud()">Enviar solicitud</button>
-    </section>
+<section class="solicitud">
+  <h2>Solicitar Vacaciones</h2>
+  <label for="inicio">Fecha de inicio</label>
+  <input type="date" id="inicio">
+
+  <label for="fin">Fecha de fin</label>
+  <input type="date" id="fin">
+
+  <button onclick="enviarSolicitud()">Enviar solicitud</button>
+  <p id="mensajeSolicitud" class="error"></p>
+</section>
 
     <section class="historial">
       <h2>Historial de solicitudes</h2>
