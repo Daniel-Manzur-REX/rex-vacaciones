@@ -204,6 +204,14 @@
         return;
       }
 
+      const anticipacionMinima = 14;
+      const diferenciaDias = Math.ceil((fechaInicio - hoy) / (1000 * 60 * 60 * 24));
+
+      if (diferenciaDias < anticipacionMinima) {
+        mensaje.textContent = `Debes solicitar tus vacaciones con al menos ${anticipacionMinima} días de anticipación.`;
+        return;
+      }
+
       if (fechaInicio > fechaFin) {
         mensaje.textContent = 'La fecha de inicio debe ser antes de la fecha de fin.';
         return;
