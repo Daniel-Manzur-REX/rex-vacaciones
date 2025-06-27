@@ -123,18 +123,18 @@
       const hoy = new Date();
       const renovacion = new Date(sesion.renovacion);
 
-      if (hoy >= renovacion) {
-        const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
-        db.ref(`usuarios/${key}`).update({ usados: 0 }).then(() => {
-          sesion.usados = 0;
-          sesion.renovacion = new Date(renovacion.setFullYear(renovacion.getFullYear() + 1)).toISOString().split('T')[0];
-          db.ref(`usuarios/${key}/renovacion`).set(sesion.renovacion);
-          localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
-          location.reload();
-        });
-      }
-        return;
-      }
+    if (hoy >= renovacion) {
+      const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
+      db.ref(`usuarios/${key}`).update({ usados: 0 }).then(() => {
+        sesion.usados = 0;
+        sesion.renovacion = new Date(renovacion.setFullYear(renovacion.getFullYear() + 1)).toISOString().split('T')[0];
+        db.ref(`usuarios/${key}/renovacion`).set(sesion.renovacion);
+        localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+        location.reload();
+      });
+      return;
+    }
+    
       document.getElementById('nombreUsuario').textContent = sesion.nombre;
       document.getElementById('diasTotales').textContent = sesion.dias;
       document.getElementById('diasUsados').textContent = sesion.usados;
@@ -254,26 +254,6 @@
     });
   });
 }
-
-        const nuevaSolicitud = {
-          usuario: sesion.usuario,
-          inicio,
-          fin,
-          estado: 'Aprobado',
-          justificacion
-        };
-
-        db.ref('solicitudes').push(nuevaSolicitud).then(() => {
-          const nuevosUsados = diasPendientes + diasSolicitados;
-          const key = sesion.usuario.replace(/[.#$\[\]]/g, '_');
-          db.ref(`usuarios/${key}/usados`).set(nuevosUsados).then(() => {
-            sesion.usados = nuevosUsados;
-            localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
-            alert('Solicitud registrada correctamente.');
-            location.reload();
-          });
-        });
-      });
     }
 
     function cambiarContrasena() {
