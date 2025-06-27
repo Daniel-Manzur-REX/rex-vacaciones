@@ -209,16 +209,12 @@
       });
     }
     
-    function calcularRenovacion(ingreso) {
-      const fechaIngreso = new Date(ingreso);
-      const hoy = new Date();
-      const añoActual = hoy.getFullYear();
-      let renovacion = new Date(añoActual, fechaIngreso.getMonth(), fechaIngreso.getDate());
-      if (renovacion < hoy) {
-        renovacion.setFullYear(añoActual + 1);
-      }
-      return renovacion.toISOString().split('T')[0];
-    }
+function calcularRenovacion(ingreso) {
+  const fechaIngreso = new Date(ingreso);
+  const siguienteRenovacion = new Date(fechaIngreso);
+  siguienteRenovacion.setFullYear(fechaIngreso.getFullYear() + 1);
+  return siguienteRenovacion.toISOString().split('T')[0];
+}
 
     function calcularDiasPorAntiguedad(fechaIngreso) {
   if (!fechaIngreso) return 0;
