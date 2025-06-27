@@ -228,12 +228,7 @@
         return;
       }
 
-      let diasSolicitados = 0;
-      const tempDate = new Date(fechaInicio);
-      while (tempDate <= fechaFin) {
-        if (tempDate.getDay() !== 0) diasSolicitados++; // 0 es domingo
-        tempDate.setDate(tempDate.getDate() + 1);
-      }
+      const diasSolicitados = contarDiasHabiles(inicio, fin);
       const restantes = sesion.dias - sesion.usados;
 
       if (diasSolicitados > restantes) {
