@@ -162,18 +162,18 @@
         });
       });
     }
+
     function contarDiasHabiles(inicio, fin) {
       const start = new Date(inicio);
       const end = new Date(fin);
       let dias = 0;
-
       while (start <= end) {
-        if (start.getDay() !== 0) dias++; // Excluye domingos
+        if (start.getDay() !== 0) dias++;
         start.setDate(start.getDate() + 1);
       }
-
       return dias;
     }
+
     function cancelarSolicitud(id, dias) {
       if (confirm('¿Seguro que deseas eliminar esta solicitud?')) {
         db.ref('solicitudes/' + id).once('value').then(snapshot => {
@@ -270,8 +270,19 @@
             mensaje.className = 'success';
             mensaje.textContent = 'Solicitud enviada correctamente.';
             cargarDatosUsuario();
-            notificarGoogleCalendar(sesion.usuario, inicio, fin, 'agregar');
-
+            fetch("https://script.google.com/macros/s/AKfyc.../exec", {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                accion: 'agregar',
+                usuario: sesion.nombre,
+                inicio,
+                fin
+              })
+            });
           });
         });
       });
@@ -289,18 +300,12 @@
         document.getElementById('nueva-pass').value = '';
       });
     }
+
     function notificarGoogleCalendar(usuario, inicio, fin, accion) {
       fetch('https://script.google.com/macros/s/AKfycby65ffzLXVhL1pxGUC0bUufn5egY8G9S_35LnJ_GP1v-2zNg6c2k2sM1uZ2xSK7rxWd/exec', {
         method: 'POST',
-        body: JSON.stringify({
-          usuario,
-          inicio,
-          fin,
-          accion // "agregar" o "eliminar"
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        body: JSON.stringify({ usuario, inicio, fin, accion }),
+        headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.text())
       .then(console.log)
