@@ -39,6 +39,7 @@
       margin-top: 1rem;
       width: 100%;
       box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
     }
     input {
       background-color: white;
@@ -95,23 +96,25 @@
 
     function loginConGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider)
-        .then(result => {
-          const user = result.user;
+      auth.signInWithPopup(provider)
+        .then(({ user }) => {
           if (!user.email.endsWith('@reforestacionextrema.org')) {
             alert('Solo se permiten correos del dominio @reforestacionextrema.org');
             auth.signOut();
             return;
           }
-
           const usuarioKey = user.email.split('@')[0].replace(/[.#$\[\]]/g, '_');
           db.ref('usuarios/' + usuarioKey).once('value').then(snapshot => {
             if (snapshot.exists()) {
               const usuarioData = snapshot.val();
               localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
-              window.location.href = 'usuario.html';
+              if (usuarioData.isAdmin) {
+                window.location.href = 'rex-vacaciones.html';
+              } else {
+                window.location.href = 'usuario.html';
+              }
             } else {
-              alert('Tu correo es válido, pero aún no estás registrado en el sistema.');
+              alert('Tu correo es válido, pero aún no estás registrado.');
               auth.signOut();
             }
           });
@@ -126,27 +129,31 @@
       event.preventDefault();
       const user = document.getElementById('user').value.trim();
       const pass = document.getElementById('pass').value.trim();
-
-      if (user === 'admin' && pass === 'co360617') {
-        localStorage.setItem('usuarioActivo', JSON.stringify({ usuario: 'admin', contrasena: 'co360617' }));
-        window.location.href = 'rex-vacaciones.html';
-        return;
-      }
+      const errorEl = document.getElementById('error');
 
       const userKey = user.replace(/[.#$\[\]]/g, '_');
-      db.ref('usuarios/' + userKey).once('value').then(snapshot => {
-        if (snapshot.exists()) {
-          const usuarioData = snapshot.val();
-          if (usuarioData.contrasena === pass) {
-            localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
-            window.location.href = 'usuario.html';
+      db.ref('usuarios/' + userKey).once('value')
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const usuarioData = snapshot.val();
+            if (usuarioData.contrasena === pass) {
+              localStorage.setItem('usuarioActivo', JSON.stringify(usuarioData));
+              if (usuarioData.isAdmin) {
+                window.location.href = 'rex-vacaciones.html';
+              } else {
+                window.location.href = 'usuario.html';
+              }
+            } else {
+              errorEl.textContent = 'Contraseña incorrecta';
+            }
           } else {
-            document.getElementById('error').textContent = 'Contraseña incorrecta';
+            errorEl.textContent = 'Usuario no encontrado';
           }
-        } else {
-          document.getElementById('error').textContent = 'Usuario no encontrado';
-        }
-      });
+        })
+        .catch(err => {
+          console.error(err);
+          errorEl.textContent = 'Error al conectar con la base de datos';
+        });
     }
   </script>
 </head>
