@@ -188,6 +188,7 @@
             db.ref(`usuarios/${key}/usados`).set(nuevosUsados).then(() => {
               sesion.usados = nuevosUsados;
               localStorage.setItem('usuarioActivo', JSON.stringify(sesion));
+              notificarGoogleCalendar(sesion.usuario, solicitud.inicio, solicitud.fin, 'eliminar');
               location.reload();
             });
           });
@@ -269,6 +270,8 @@
             mensaje.className = 'success';
             mensaje.textContent = 'Solicitud enviada correctamente.';
             cargarDatosUsuario();
+            notificarGoogleCalendar(sesion.usuario, inicio, fin, 'agregar');
+
           });
         });
       });
@@ -285,6 +288,23 @@
         alert('Contraseña actualizada.');
         document.getElementById('nueva-pass').value = '';
       });
+    }
+    function notificarGoogleCalendar(usuario, inicio, fin, accion) {
+      fetch('https://script.google.com/macros/s/AKfycby65ffzLXVhL1pxGUC0bUufn5egY8G9S_35LnJ_GP1v-2zNg6c2k2sM1uZ2xSK7rxWd/exec', {
+        method: 'POST',
+        body: JSON.stringify({
+          usuario,
+          inicio,
+          fin,
+          accion // "agregar" o "eliminar"
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.text())
+      .then(console.log)
+      .catch(err => console.error('Error al comunicar con Google Calendar:', err));
     }
 
     window.onload = cargarDatosUsuario;
