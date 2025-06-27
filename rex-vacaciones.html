@@ -211,8 +211,15 @@
     
 function calcularRenovacion(ingreso) {
   const fechaIngreso = new Date(ingreso);
-  const siguienteRenovacion = new Date(fechaIngreso);
-  siguienteRenovacion.setFullYear(fechaIngreso.getFullYear() + 1);
+  const hoy = new Date();
+  let siguienteRenovacion = new Date(fechaIngreso);
+  siguienteRenovacion.setFullYear(siguienteRenovacion.getFullYear() + 1);
+
+  // Avanzar la fecha hasta que esté en el futuro
+  while (siguienteRenovacion <= hoy) {
+    siguienteRenovacion.setFullYear(siguienteRenovacion.getFullYear() + 1);
+  }
+
   return siguienteRenovacion.toISOString().split('T')[0];
 }
 
