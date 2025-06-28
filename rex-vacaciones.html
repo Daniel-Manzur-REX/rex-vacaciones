@@ -119,10 +119,11 @@
     }
   </style>
 <script>
-    const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
-    if (!sesion || sesion.usuario !== 'admin' || sesion.contrasena !== 'co360617') {
-      window.location.href = 'login.html';
-    }
+  const sesion = JSON.parse(localStorage.getItem('usuarioActivo'));
+  // sólo necesitas que exista la sesión y la propiedad isAdmin === true
+  if (!sesion || !sesion.isAdmin) {
+    window.location.href = 'login.html';
+  }
 </script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
