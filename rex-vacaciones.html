@@ -173,15 +173,21 @@
       const correo = document.getElementById('correo').value.trim();
       const contrasena = document.getElementById('contrasena').value.trim();
       const ingreso = document.getElementById('fecha-ingreso').value;
-      const dias = calcularDiasPorAntiguedad(ingreso);
-      const renovacion = calcularRenovacion(ingreso);
-    
-      if (!nombre || !usuario || !correo || !contrasena || isNaN(dias) || !renovacion) {
+
+      if (!nombre || !usuario || !correo || !contrasena || !ingreso) {
         alert('Por favor complete todos los campos correctamente.');
         return;
       }
-    
-      const nuevoUsuario = { nombre, usuario, correo, contrasena, dias, usados: 0, renovacion };
+
+      const dias = calcularDiasPorAntiguedad(ingreso);
+      const renovacion = calcularRenovacion(ingreso);
+
+      if (isNaN(dias) || !renovacion) {
+        alert('Por favor complete todos los campos correctamente.');
+        return;
+      }
+
+      const nuevoUsuario = { nombre, usuario, correo, contrasena, ingreso, dias, usados: 0, renovacion };
       const usuarioKey = usuario.replace(/[.#$\[\]]/g, '_');
       db.ref('usuarios/' + usuarioKey).set(nuevoUsuario, error => {
         if (error) {
