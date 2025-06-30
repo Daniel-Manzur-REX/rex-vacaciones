@@ -234,8 +234,11 @@ function calcularRenovacion(ingreso) {
 }
 
     function verificarRenovacion(usuario, key) {
-  const hoy = new Date().toISOString().split('T')[0];
-  if (usuario.renovacion === hoy) {
+  const hoy = new Date();
+  const fechaRenovacion = new Date(usuario.renovacion);
+  fechaRenovacion.setHours(0, 0, 0, 0);
+
+  if (fechaRenovacion <= hoy) {
     const nuevaRenovacion = calcularRenovacion(usuario.ingreso);
     const nuevosDias = calcularDiasPorAntiguedad(usuario.ingreso);
     db.ref(`usuarios/${key}`).update({
